@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 84% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+    --primary-hover: 221 83% 48%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 84% 5%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 84% 5%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(262 83% 58%));
+    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(262 83% 58%) 100%);
+    --shadow-card: 0 4px 6px -1px hsla(0, 0%, 0%, 0.1), 0 2px 4px -2px hsla(0, 0%, 0%, 0.1);
+    --shadow-hover: 0 10px 15px -3px hsla(221, 83%, 53%, 0.1), 0 4px 6px -4px hsla(221, 83%, 53%, 0.1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 222 84% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 84% 7%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 84% 7%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 84% 5%;
+    --primary-hover: 217 91% 65%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .animation-delay-300 {
+    animation-delay: 0.3s;
+  }
+  .animation-delay-500 {
+    animation-delay: 0.5s;
+  }
+  .animation-delay-600 {
+    animation-delay: 0.6s;
+  }
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+  .animation-delay-1500 {
+    animation-delay: 1.5s;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+}
