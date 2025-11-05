@@ -10,7 +10,10 @@ import { useProduct } from "@/hooks/useProducts";
 import { useAddToCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Star, ShoppingCart, Heart, Share2, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { useProductReviews, useCreateReview, useUpdateReview, useDeleteReview, useMarkReviewHelpful, useReportReview } from "@/hooks/useReviews";
+import ReviewList from "@/components/ReviewList";
+import ReviewForm from "@/components/ReviewForm";
+import { Loader2, Star, ShoppingCart, Heart, Share2, ZoomIn, ZoomOut, RotateCcw, MessageSquarePlus } from "lucide-react";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +21,18 @@ const ProductDetail = () => {
   const { toast } = useToast();
   const { data: product, isLoading, error } = useProduct(id!);
   const addToCartMutation = useAddToCart();
+
+  // Reviews state
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReview, setEditingReview] = useState<any>(null);
+  const [reviewsPage, setReviewsPage] = useState(1);
+
+  const { data: reviewsData, isLoading: reviewsLoading } = useProductReviews(id!, reviewsPage);
+  const createReviewMutation = useCreateReview();
+  const updateReviewMutation = useUpdateReview();
+  const deleteReviewMutation = useDeleteReview();
+  const markHelpfulMutation = useMarkReviewHelpful();
+  const reportReviewMutation = useReportReview();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -137,6 +152,52 @@ const ProductDetail = () => {
     setZoomLevel(1);
     setPanPosition({ x: 0, y: 0 });
     setIsZoomed(false);
+  };
+
+  // Review handlers
+  const handleCreateReview = async (reviewData: any) => {
+    if (!id) return;
+    await createReviewMutation.mutateAsync({ productId: id, reviewData });
+    setShowReviewForm(false);
+  };
+
+  const handleUpdateReview = async (reviewData: any) => {
+    if (!editingReview) return;
+    await updateReviewMutation.mutateAsync({ reviewId: editingReview._id, reviewData });
+    setEditingReview(null);
+    setShowReviewForm(false);
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (confirm('Are you sure you want to delete this review?')) {
+      await deleteReviewMutation.mutateAsync(reviewId);
+    }
+  };
+
+  const handleMarkHelpful = async (reviewId: string) => {
+    await markHelpfulMutation.mutateAsync(reviewId);
+  };
+
+  const handleReportReview = async (reviewId: string) => {
+    await reportReviewMutation.mutateAsync(reviewId);
+    toast({
+      title: "Review reported",
+      description: "Thank you for helping us maintain quality reviews.",
+    });
+  };
+
+  const handleEditReview = (review: any) => {
+    setEditingReview(review);
+    setShowReviewForm(true);
+  };
+
+  const handleCancelReview = () => {
+    setShowReviewForm(false);
+    setEditingReview(null);
+  };
+
+  const handleLoadMoreReviews = () => {
+    setReviewsPage(prev => prev + 1);
   };
 
   return (
@@ -364,6 +425,51 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-12 space-y-8">
+          {/* Review Form */}
+          {user && (
+            <div className="flex justify-center">
+              {!showReviewForm ? (
+                <Button
+                  onClick={() => setShowReviewForm(true)}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <MessageSquarePlus className="h-4 w-4" />
+                  Write a Review
+                </Button>
+              ) : (
+                <div className="w-full max-w-2xl">
+                  <ReviewForm
+                    productId={id!}
+                    onSubmit={editingReview ? handleUpdateReview : handleCreateReview}
+                    onCancel={handleCancelReview}
+                    initialData={editingReview ? {
+                      rating: editingReview.rating,
+                      title: editingReview.title,
+                      comment: editingReview.comment,
+                    } : undefined}
+                    isEditing={!!editingReview}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Reviews List */}
+          <ReviewList
+            reviews={reviewsData?.reviews || []}
+            isLoading={reviewsLoading}
+            hasMore={reviewsData ? reviewsData.page < reviewsData.pages : false}
+            onLoadMore={handleLoadMoreReviews}
+            onMarkHelpful={handleMarkHelpful}
+            onReport={handleReportReview}
+            onEdit={handleEditReview}
+            onDelete={handleDeleteReview}
+          />
         </div>
       </main>
 
