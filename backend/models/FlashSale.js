@@ -27,8 +27,7 @@ const flashSaleSchema = new mongoose.Schema({
     default: Date.now
   },
   endTime: {
-    type: Date,
-    required: true
+    type: Date
   },
   status: {
     type: String,
