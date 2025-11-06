@@ -82,29 +82,64 @@ const ProductDetail = () => {
       return;
     }
 
-    addToCartMutation.mutate(
-      { productId: product._id, quantity: 1 },
-      {
-        onSuccess: () => {
-          toast({
-            title: "Added to cart",
-            description: `${product.name} has been added to your cart`,
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: "Error",
-            description: error.response?.data?.message || "Failed to add to cart",
-            variant: "destructive",
-          });
-        },
-      }
-    );
+    // If there's an active flash sale, use flash sale purchase instead
+    if (isFlashSaleActive && !isFlashSaleSoldOut) {
+      // Use flash sale purchase API
+      // For now, we'll still use regular cart but could be enhanced to use flash sale API
+      addToCartMutation.mutate(
+        { productId: product._id, quantity: 1 },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Flash Sale Purchase!",
+              description: `🎉 ${product.name} flash sale item added to your cart at KSh ${product.flashSale.flashPrice.toLocaleString()}!`,
+            });
+          },
+          onError: (error: any) => {
+            toast({
+              title: "Error",
+              description: error.response?.data?.message || "Failed to add to cart",
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    } else {
+      addToCartMutation.mutate(
+        { productId: product._id, quantity: 1 },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Added to cart",
+              description: `${product.name} has been added to your cart`,
+            });
+          },
+          onError: (error: any) => {
+            toast({
+              title: "Error",
+              description: error.response?.data?.message || "Failed to add to cart",
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    }
   };
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
+
+  const flashSaleDiscount = product.flashSale
+    ? Math.round(((product.price - product.flashSale.flashPrice) / product.price) * 100)
+    : 0;
+
+  const isFlashSaleActive = product.flashSale &&
+    product.flashSale.status === 'active' &&
+    new Date(product.flashSale.endTime) > new Date();
+
+  const isFlashSaleSoldOut = product.flashSale &&
+    product.flashSale.soldQuantity >= product.flashSale.quantity;
 
   const handleZoomToggle = () => {
     if (isZoomed) {
@@ -330,28 +365,58 @@ const ProductDetail = () => {
 
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-3xl font-bold text-primary">
-                      KSh {product.price.toLocaleString()}
-                    </span>
-                    {product.originalPrice && (
+                    {isFlashSaleActive ? (
                       <>
-                        <span className="text-lg text-muted-foreground line-through">
-                          KSh {product.originalPrice.toLocaleString()}
+                        <span className="text-3xl font-bold text-red-600">
+                          KSh {product.flashSale.flashPrice.toLocaleString()}
                         </span>
-                        <Badge variant="destructive">-{discount}%</Badge>
+                        <span className="text-lg text-muted-foreground line-through">
+                          KSh {product.price.toLocaleString()}
+                        </span>
+                        <Badge className="bg-red-500 text-white">FLASH SALE</Badge>
+                        <Badge variant="destructive">-{flashSaleDiscount}%</Badge>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-3xl font-bold text-primary">
+                          KSh {product.price.toLocaleString()}
+                        </span>
+                        {product.originalPrice && (
+                          <>
+                            <span className="text-lg text-muted-foreground line-through">
+                              KSh {product.originalPrice.toLocaleString()}
+                            </span>
+                            <Badge variant="destructive">-{discount}%</Badge>
+                          </>
+                        )}
                       </>
                     )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 mb-4">
-                  <Badge variant={product.stock > 0 ? "default" : "destructive"}>
-                    {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                  </Badge>
-                  {product.stock > 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      {product.stock} available
-                    </span>
+                  {isFlashSaleActive ? (
+                    <>
+                      <Badge variant={isFlashSaleSoldOut ? "destructive" : "default"}>
+                        {isFlashSaleSoldOut ? "FLASH SALE SOLD OUT" : "FLASH SALE ACTIVE"}
+                      </Badge>
+                      {!isFlashSaleSoldOut && (
+                        <span className="text-sm text-muted-foreground">
+                          {product.flashSale.quantity - product.flashSale.soldQuantity} of {product.flashSale.quantity} available
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Badge variant={product.stock > 0 ? "default" : "destructive"}>
+                        {product.stock > 0 ? "In Stock" : "Out of Stock"}
+                      </Badge>
+                      {product.stock > 0 && (
+                        <span className="text-sm text-muted-foreground">
+                          {product.stock} available
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -399,7 +464,10 @@ const ProductDetail = () => {
               <div className="flex gap-4">
                 <Button
                   onClick={handleAddToCart}
-                  disabled={product.stock === 0 || addToCartMutation.isPending}
+                  disabled={
+                    (isFlashSaleActive ? isFlashSaleSoldOut : product.stock === 0) ||
+                    addToCartMutation.isPending
+                  }
                   className="flex-1"
                   size="lg"
                 >
@@ -408,7 +476,12 @@ const ProductDetail = () => {
                   ) : (
                     <ShoppingCart className="h-4 w-4 mr-2" />
                   )}
-                  Add to Cart
+                  {isFlashSaleActive && !isFlashSaleSoldOut
+                    ? `Buy Flash Sale - KSh ${product.flashSale.flashPrice.toLocaleString()}`
+                    : isFlashSaleSoldOut
+                    ? "Flash Sale Sold Out"
+                    : "Add to Cart"
+                  }
                 </Button>
                 <Button variant="outline" size="lg">
                   <Heart className="h-4 w-4" />

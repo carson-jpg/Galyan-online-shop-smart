@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/hooks/useAuth';
+import { useActiveFlashSales, useCreateFlashSale, useDeleteFlashSale, useAllFlashSales } from '@/hooks/useFlashSales';
 import api from '@/lib/api';
-import { Upload, X, Plus, Users, Trash2, BarChart3, TrendingUp, Package, ShoppingCart, DollarSign, User } from 'lucide-react';
+import { Upload, X, Plus, Users, Trash2, BarChart3, TrendingUp, Package, ShoppingCart, DollarSign, User, Zap } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
 
 interface Product {
@@ -90,6 +91,11 @@ const AdminDashboard = () => {
     brand: '',
     tags: '',
   });
+  const [flashSaleForm, setFlashSaleForm] = useState({
+    productId: '',
+    flashPrice: '',
+    quantity: '',
+  });
 
   // Fetch products
   const { data: products, isLoading: productsLoading } = useQuery({
@@ -141,6 +147,12 @@ const AdminDashboard = () => {
     enabled: !!user && user.role === 'admin',
   });
 
+  // Fetch active flash sales
+  const { data: flashSalesData, isLoading: flashSalesLoading } = useActiveFlashSales();
+
+  // Fetch all flash sales for admin
+  const { data: allFlashSalesData, isLoading: allFlashSalesLoading } = useAllFlashSales(1);
+
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -154,6 +166,36 @@ const AdminDashboard = () => {
     onError: (error: any) => {
       console.error('Delete user error:', error);
       alert(`Error deleting user: ${error.response?.data?.message || error.message}`);
+    },
+  });
+
+  // Create flash sale mutation
+  const createFlashSaleMutation = useMutation({
+    mutationFn: async (data: { productId: string; flashPrice: number; quantity: number }) => {
+      const response = await api.post('/flash-sales', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flashSales'] });
+      setFlashSaleForm({ productId: '', flashPrice: '', quantity: '' });
+      alert('Flash sale created successfully!');
+    },
+    onError: (error: any) => {
+      alert(`Error creating flash sale: ${error.response?.data?.message || error.message}`);
+    },
+  });
+
+  // Delete flash sale mutation
+  const deleteFlashSaleMutation = useMutation({
+    mutationFn: async (flashSaleId: string) => {
+      await api.delete(`/flash-sales/${flashSaleId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flashSales'] });
+      alert('Flash sale deleted successfully!');
+    },
+    onError: (error: any) => {
+      alert(`Error deleting flash sale: ${error.response?.data?.message || error.message}`);
     },
   });
 
@@ -443,6 +485,14 @@ const AdminDashboard = () => {
           >
             <TrendingUp className="h-4 w-4 mr-2" />
             Analytics
+          </Button>
+          <Button
+            variant={activeTab === 'flash-sales' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('flash-sales')}
+            className="flex-1 min-w-0"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Flash Sales
           </Button>
         </div>
 
@@ -1047,6 +1097,136 @@ const AdminDashboard = () => {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {activeTab === 'flash-sales' && (
+        <div className="space-y-8">
+          {/* Create Flash Sale */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Create Flash Sale</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!flashSaleForm.productId || !flashSaleForm.flashPrice || !flashSaleForm.quantity) {
+                  alert('Please fill all fields');
+                  return;
+                }
+                createFlashSaleMutation.mutate({
+                  productId: flashSaleForm.productId,
+                  flashPrice: parseFloat(flashSaleForm.flashPrice),
+                  quantity: parseInt(flashSaleForm.quantity),
+                });
+              }} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="product">Product *</Label>
+                    <Select
+                      value={flashSaleForm.productId}
+                      onValueChange={(value) => setFlashSaleForm(prev => ({ ...prev, productId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products?.filter(p => p.isActive).map((product) => (
+                          <SelectItem key={product._id} value={product._id}>
+                            {product.name} - KSh {product.price.toLocaleString()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="flashPrice">Flash Sale Price (KSh) *</Label>
+                    <Input
+                      id="flashPrice"
+                      type="number"
+                      step="0.01"
+                      value={flashSaleForm.flashPrice}
+                      onChange={(e) => setFlashSaleForm(prev => ({ ...prev, flashPrice: e.target.value }))}
+                      placeholder="e.g. 999.99"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="quantity">Quantity *</Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      value={flashSaleForm.quantity}
+                      onChange={(e) => setFlashSaleForm(prev => ({ ...prev, quantity: e.target.value }))}
+                      placeholder="e.g. 50"
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={createFlashSaleMutation.isPending}
+                >
+                  {createFlashSaleMutation.isPending ? 'Creating...' : 'Create Flash Sale'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Active Flash Sales */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Flash Sales</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {flashSalesLoading ? (
+                <div className="text-center py-4">Loading flash sales...</div>
+              ) : flashSalesData && flashSalesData.length === 0 ? (
+                <div className="text-center py-4">No active flash sales</div>
+              ) : (
+                <div className="space-y-4">
+                  {flashSalesData?.map((flashSale) => (
+                    <div key={flashSale._id} className="flex items-center justify-between border rounded-lg p-4">
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={flashSale.product.images[0] || "/placeholder.svg"}
+                          alt={flashSale.product.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                        <div>
+                          <h3 className="font-medium">{flashSale.product.name}</h3>
+                          <p className="text-sm text-gray-600">
+                            Original: KSh {flashSale.product.price.toLocaleString()} |
+                            Flash: KSh {flashSale.flashPrice.toLocaleString()}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Sold: {flashSale.soldQuantity}/{flashSale.quantity} |
+                            Status: <Badge variant={
+                              flashSale.status === 'active' ? 'default' :
+                              flashSale.status === 'sold_out' ? 'destructive' : 'secondary'
+                            }>{flashSale.status}</Badge>
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Expires: {new Date(flashSale.endTime).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm(`Delete flash sale for "${flashSale.product.name}"?`)) {
+                            deleteFlashSaleMutation.mutate(flashSale._id);
+                          }
+                        }}
+                        disabled={deleteFlashSaleMutation.isPending}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
       </div>
     </div>

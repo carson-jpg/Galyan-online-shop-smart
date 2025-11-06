@@ -42,6 +42,10 @@ const getProducts = async (req, res) => {
     const count = await Product.countDocuments({ ...keyword, ...categoryFilter });
     const products = await Product.find({ ...keyword, ...categoryFilter })
       .populate('category', 'name')
+      .populate({
+        path: 'flashSale',
+        match: { status: 'active', endTime: { $gt: new Date() } }
+      })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort({ createdAt: -1 })
@@ -64,7 +68,12 @@ const getProducts = async (req, res) => {
 // @access  Public
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('category', 'name');
+    const product = await Product.findById(req.params.id)
+      .populate('category', 'name')
+      .populate({
+        path: 'flashSale',
+        match: { status: 'active', endTime: { $gt: new Date() } }
+      });
 
     if (product) {
       res.json(product);

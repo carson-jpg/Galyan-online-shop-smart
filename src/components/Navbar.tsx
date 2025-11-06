@@ -13,7 +13,7 @@ const Navbar = () => {
   const { data: cart } = useCart();
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const cartItemCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+  const cartItemCount = isAuthenticated ? (cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0) : 0;
 
   // Load dark mode preference
   useEffect(() => {
@@ -87,14 +87,25 @@ const Navbar = () => {
                 <Button variant="ghost" size="icon" className="hidden md:inline-flex">
                   <Heart className="h-5 w-5" />
                 </Button>
-                <Link to="/cart">
-                  <Button variant="ghost" size="icon" className="relative">
-                    <ShoppingCart className="h-5 w-5" />
-                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary">
-                      {cartItemCount}
-                    </Badge>
-                  </Button>
-                </Link>
+                {isAuthenticated ? (
+                  <Link to="/cart">
+                    <Button variant="ghost" size="icon" className="relative">
+                      <ShoppingCart className="h-5 w-5" />
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary">
+                        {cartItemCount}
+                      </Badge>
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/login">
+                    <Button variant="ghost" size="icon" className="relative">
+                      <ShoppingCart className="h-5 w-5" />
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary">
+                        0
+                      </Badge>
+                    </Button>
+                  </Link>
+                )}
               </>
             )}
             {isAuthenticated ? (

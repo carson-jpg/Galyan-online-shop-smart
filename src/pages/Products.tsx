@@ -509,6 +509,7 @@ const Products = () => {
                   image={product.images?.[0] || "/placeholder.svg"}
                   rating={product.rating}
                   discount={product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : undefined}
+                  flashSale={product.flashSale}
                 />
               ))}
             </div>

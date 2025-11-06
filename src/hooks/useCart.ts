@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { useAuth } from './useAuth';
 
 interface CartItem {
   _id: string;
@@ -24,12 +25,15 @@ interface Cart {
 }
 
 export const useCart = () => {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ['cart'],
     queryFn: async () => {
       const response = await api.get('/cart');
       return response.data as Cart;
     },
+    enabled: isAuthenticated, // Only fetch cart when user is authenticated
   });
 };
 

@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import CategoryGrid from "@/components/CategoryGrid";
 import ProductCard from "@/components/ProductCard";
+import FlashSaleCarousel from "@/components/FlashSaleCarousel";
 import Footer from "@/components/Footer";
 import { useTopProducts } from "@/hooks/useProducts";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,6 +35,7 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar />
       <Hero />
+      <FlashSaleCarousel />
       <CategoryGrid />
 
       <section className="py-16 bg-gradient-to-b from-background to-muted/20">

@@ -18,6 +18,14 @@ interface Product {
   numReviews: number;
   isActive: boolean;
   tags: string[];
+  flashSale?: {
+    _id: string;
+    flashPrice: number;
+    quantity: number;
+    soldQuantity: number;
+    endTime: string;
+    status: 'active' | 'expired' | 'sold_out';
+  };
   createdAt: string;
 }
 

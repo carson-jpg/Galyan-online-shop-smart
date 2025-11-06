@@ -56,7 +56,11 @@ const productSchema = new mongoose.Schema({
   tags: [{
     type: String,
     trim: true
-  }]
+  }],
+  flashSale: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FlashSale'
+  }
 }, {
   timestamps: true
 });
