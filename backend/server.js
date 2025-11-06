@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const passport = require('passport');
+const session = require('express-session');
 
 dotenv.config();
 
@@ -13,8 +14,20 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Session middleware (required for Passport OAuth)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
 // Passport middleware
 app.use(passport.initialize());
+app.use(passport.session());
 
 // Database connection
 mongoose.connect(process.env.MONGO_URI, {
