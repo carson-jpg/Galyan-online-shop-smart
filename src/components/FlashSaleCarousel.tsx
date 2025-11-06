@@ -117,7 +117,7 @@ const FlashSaleCarousel = () => {
             <Zap className="w-5 h-5 animate-pulse" />
             Flash Sales - Limited Time Offers!
             <span className="text-sm font-normal text-muted-foreground ml-2">
-              ({flashSales.length} active deals)
+              ({flashSales.filter(fs => fs.status === 'active').length} active, {flashSales.filter(fs => fs.status === 'sold_out').length} sold out)
             </span>
           </CardTitle>
 

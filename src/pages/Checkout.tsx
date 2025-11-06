@@ -27,6 +27,9 @@ const Checkout = () => {
   const queryClient = useQueryClient();
   const addressInputRef = useRef<HTMLInputElement>(null);
 
+  // Check for flash sale purchase
+  const flashSaleData = JSON.parse(sessionStorage.getItem('flashSalePurchase') || 'null');
+
   const [shippingAddress, setShippingAddress] = useState({
     address: '',
     city: '',
@@ -60,10 +63,14 @@ const Checkout = () => {
 
   const initiatePaymentMutation = useMutation({
     mutationFn: async (orderId: string) => {
+      const amount = flashSaleData
+        ? flashSaleData.flashPrice * flashSaleData.quantity
+        : cart?.totalAmount;
+
       const response = await api.post('/mpesa/stkpush', {
         orderId,
         phoneNumber,
-        amount: cart?.totalAmount,
+        amount,
       });
       return response.data;
     },
@@ -72,6 +79,12 @@ const Checkout = () => {
         title: 'Payment initiated',
         description: 'Please check your phone for the M-Pesa prompt.',
       });
+
+      // Clear flash sale data on successful payment initiation
+      if (flashSaleData) {
+        sessionStorage.removeItem('flashSalePurchase');
+      }
+
       navigate('/orders');
     },
     onError: (error: any) => {
@@ -83,22 +96,51 @@ const Checkout = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!cart || cart.items.length === 0) {
-      toast({
-        title: 'Cart is empty',
-        description: 'Please add items to your cart before checkout.',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     if (!phoneNumber) {
       toast({
         title: 'Phone number required',
         description: 'Please enter your M-Pesa phone number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Handle flash sale purchase
+    if (flashSaleData) {
+      try {
+        // Use flash sale purchase API
+        const response = await api.post(`/flash-sales/${flashSaleData.flashSaleId}/purchase`, {
+          quantity: flashSaleData.quantity
+        });
+
+        toast({
+          title: 'Flash Sale Purchase Successful!',
+          description: 'Your order has been placed successfully.',
+        });
+
+        // Clear flash sale data
+        sessionStorage.removeItem('flashSalePurchase');
+
+        // Redirect to orders
+        navigate('/orders');
+      } catch (error: any) {
+        toast({
+          title: 'Purchase failed',
+          description: error.response?.data?.message || 'Something went wrong',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+
+    // Handle regular cart checkout
+    if (!cart || cart.items.length === 0) {
+      toast({
+        title: 'Cart is empty',
+        description: 'Please add items to your cart before checkout.',
         variant: 'destructive',
       });
       return;
@@ -290,7 +332,8 @@ const Checkout = () => {
     return null;
   }
 
-  if (!cart || cart.items.length === 0) {
+  // Don't show empty cart message for flash sales
+  if (!flashSaleData && (!cart || cart.items.length === 0)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -314,28 +357,55 @@ const Checkout = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {cart.items.map((item) => (
-                  <div key={item._id} className="flex items-center space-x-4">
-                    <img
-                      src={item.product?.images?.[0] || '/placeholder.svg'}
-                      alt={item.product?.name || 'Product'}
-                      className="w-16 h-16 object-cover rounded"
-                    />
+                {flashSaleData ? (
+                  // Flash sale order summary
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
+                      <span className="text-red-600 font-bold text-xl">⚡</span>
+                    </div>
                     <div className="flex-1">
-                      <h3 className="font-medium">{item.product?.name || 'Unknown Product'}</h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium">Flash Sale Purchase</h3>
+                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">FLASH SALE</span>
+                      </div>
                       <p className="text-sm text-gray-600">
-                        Quantity: {item.quantity} × KSh {item.price.toLocaleString()}
+                        Quantity: {flashSaleData.quantity} × KSh {flashSaleData.flashPrice.toLocaleString()}
                       </p>
                     </div>
-                    <div className="font-medium">
-                      KSh {(item.price * item.quantity).toLocaleString()}
+                    <div className="font-medium text-red-600">
+                      KSh {(flashSaleData.flashPrice * flashSaleData.quantity).toLocaleString()}
                     </div>
                   </div>
-                ))}
+                ) : (
+                  // Regular cart order summary
+                  cart.items.map((item) => (
+                    <div key={item._id} className="flex items-center space-x-4">
+                      <img
+                        src={item.product?.images?.[0] || '/placeholder.svg'}
+                        alt={item.product?.name || 'Product'}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-medium">{item.product?.name || 'Unknown Product'}</h3>
+                        <p className="text-sm text-gray-600">
+                          Quantity: {item.quantity} × KSh {item.price.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="font-medium">
+                        KSh {(item.price * item.quantity).toLocaleString()}
+                      </div>
+                    </div>
+                  ))
+                )}
                 <Separator />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total:</span>
-                  <span>KSh {cart.totalAmount.toLocaleString()}</span>
+                  <span className={flashSaleData ? 'text-red-600' : ''}>
+                    KSh {(flashSaleData
+                      ? flashSaleData.flashPrice * flashSaleData.quantity
+                      : cart.totalAmount
+                    ).toLocaleString()}
+                  </span>
                 </div>
               </div>
             </CardContent>

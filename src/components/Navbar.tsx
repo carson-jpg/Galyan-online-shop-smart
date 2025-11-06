@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useState, useEffect } from "react";
@@ -12,6 +12,8 @@ const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { data: cart } = useCart();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   const cartItemCount = isAuthenticated ? (cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0) : 0;
 
@@ -43,6 +45,21 @@ const Navbar = () => {
     }
   };
 
+  // Handle search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?keyword=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(""); // Clear search after navigation
+    }
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="container mx-auto px-4">
@@ -57,13 +74,25 @@ const Navbar = () => {
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-xl mx-8">
-            <div className="relative w-full">
+            <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search for products..."
-                className="pl-10 pr-4 h-10 w-full"
+                className="pl-10 pr-12 h-10 w-full"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleSearchKeyPress}
               />
-            </div>
+              <Button
+                type="submit"
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-2"
+                disabled={!searchQuery.trim()}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
           </div>
 
           {/* Actions */}

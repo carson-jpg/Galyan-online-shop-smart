@@ -1173,13 +1173,16 @@ const AdminDashboard = () => {
           {/* Active Flash Sales */}
           <Card>
             <CardHeader>
-              <CardTitle>Active Flash Sales</CardTitle>
+              <CardTitle>Current Flash Sales</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Shows active and recently sold out flash sales (disappear only after 1 hour expires)
+              </p>
             </CardHeader>
             <CardContent>
               {flashSalesLoading ? (
                 <div className="text-center py-4">Loading flash sales...</div>
               ) : flashSalesData && flashSalesData.length === 0 ? (
-                <div className="text-center py-4">No active flash sales</div>
+                <div className="text-center py-4">No current flash sales</div>
               ) : (
                 <div className="space-y-4">
                   {flashSalesData?.map((flashSale) => (

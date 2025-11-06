@@ -10,7 +10,16 @@ const getActiveFlashSales = async (req, res) => {
     await FlashSale.updateExpiredSales();
     await FlashSale.updateSoldOutSales();
 
-    const flashSales = await FlashSale.find({ status: 'active' })
+    // Get flash sales that are either active OR sold_out but not expired
+    const flashSales = await FlashSale.find({
+      $or: [
+        { status: 'active' },
+        {
+          status: 'sold_out',
+          endTime: { $gt: new Date() }
+        }
+      ]
+    })
       .populate('product', 'name images price stock')
       .sort({ createdAt: -1 });
 

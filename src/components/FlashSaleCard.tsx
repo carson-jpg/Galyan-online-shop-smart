@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
-import { usePurchaseFlashSale } from "@/hooks/useFlashSales";
 import { useToast } from "@/hooks/use-toast";
 import { ShoppingCart, Clock, Zap } from "lucide-react";
 
@@ -34,7 +33,7 @@ interface FlashSaleCardProps {
 const FlashSaleCard = ({ flashSale, compact = false }: FlashSaleCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const purchaseMutation = usePurchaseFlashSale();
+  const navigate = useNavigate();
 
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [progress, setProgress] = useState(0);
@@ -68,7 +67,7 @@ const FlashSaleCard = ({ flashSale, compact = false }: FlashSaleCardProps) => {
     return () => clearInterval(timer);
   }, [flashSale.endTime, flashSale.soldQuantity, flashSale.quantity]);
 
-  const handlePurchase = async () => {
+  const handlePurchase = () => {
     if (!user) {
       toast({
         title: "Please login",
@@ -78,19 +77,16 @@ const FlashSaleCard = ({ flashSale, compact = false }: FlashSaleCardProps) => {
       return;
     }
 
-    try {
-      await purchaseMutation.mutateAsync({ id: flashSale._id });
-      toast({
-        title: "Purchase successful!",
-        description: "Item added to your cart",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Purchase failed",
-        description: error.response?.data?.message || "Something went wrong",
-        variant: "destructive",
-      });
-    }
+    // Store flash sale data in sessionStorage for checkout
+    sessionStorage.setItem('flashSalePurchase', JSON.stringify({
+      flashSaleId: flashSale._id,
+      productId: flashSale.product._id,
+      flashPrice: flashSale.flashPrice,
+      quantity: 1, // Default to 1 for flash sales
+    }));
+
+    // Redirect to checkout
+    navigate('/checkout');
   };
 
   const isExpired = new Date() > new Date(flashSale.endTime);
@@ -145,7 +141,7 @@ const FlashSaleCard = ({ flashSale, compact = false }: FlashSaleCardProps) => {
           <Button
             size="sm"
             className="w-full mt-2 bg-red-500 hover:bg-red-600"
-            disabled={isExpired || isSoldOut || purchaseMutation.isPending}
+            disabled={isExpired || isSoldOut}
             onClick={handlePurchase}
           >
             {isSoldOut ? "SOLD OUT" : isExpired ? "EXPIRED" : "BUY NOW"}
@@ -216,12 +212,11 @@ const FlashSaleCard = ({ flashSale, compact = false }: FlashSaleCardProps) => {
           <Button
             size="lg"
             className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3"
-            disabled={isExpired || isSoldOut || purchaseMutation.isPending}
+            disabled={isExpired || isSoldOut}
             onClick={handlePurchase}
           >
             <ShoppingCart className="w-5 h-5 mr-2" />
-            {purchaseMutation.isPending ? "Processing..." :
-             isSoldOut ? "SOLD OUT" :
+            {isSoldOut ? "SOLD OUT" :
              isExpired ? "EXPIRED" :
              "BUY NOW - LIMITED TIME!"}
           </Button>
