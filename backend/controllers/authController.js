@@ -18,7 +18,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback'
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || `${process.env.NODE_ENV === 'production' ? 'https://galyan-online-shop-smart.onrender.com' : 'http://localhost:5000'}/api/auth/google/callback`
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
@@ -281,9 +281,11 @@ const googleAuthCallback = passport.authenticate('google', {
 const googleAuthSuccess = (req, res) => {
   if (req.user) {
     const token = generateToken(req.user._id);
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
   } else {
-    res.redirect(`${process.env.FRONTEND_URL}/login`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    res.redirect(`${frontendUrl}/login`);
   }
 };
 
