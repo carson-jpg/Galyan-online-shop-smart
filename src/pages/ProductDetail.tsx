@@ -484,22 +484,6 @@ const ProductDetail = () => {
 
               {product.attributes && product.attributes.length > 0 && <Separator />}
 
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Delivery Information:</h3>
-                  <p className="text-muted-foreground">Ships from Nairobi Central, select an address to view delivery times.</p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-2">Quantity</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">1</span>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
               <div>
                 <h3 className="font-semibold mb-2">Description</h3>
                 <p className="text-muted-foreground">{product.description}</p>
