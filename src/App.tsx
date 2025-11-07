@@ -57,8 +57,7 @@ const UserRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (user?.role === 'admin') {
-    window.location.href = '/admin';
-    return null;
+    return <Navigate to="/admin" replace />;
   }
 
   return <>{children}</>;
