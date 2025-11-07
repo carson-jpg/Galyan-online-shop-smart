@@ -1308,32 +1308,32 @@ const AdminDashboard = () => {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold">{seller.name}</h3>
+                            <h3 className="text-lg font-semibold">{seller.user?.name || seller.name}</h3>
                             <Badge variant={
-                              seller.sellerStatus === 'approved' ? 'default' :
-                              seller.sellerStatus === 'pending' ? 'secondary' : 'destructive'
+                              seller.user?.sellerStatus || seller.sellerStatus === 'approved' ? 'default' :
+                              (seller.user?.sellerStatus || seller.sellerStatus) === 'pending' ? 'secondary' : 'destructive'
                             }>
-                              {seller.sellerStatus}
+                              {seller.user?.sellerStatus || seller.sellerStatus}
                             </Badge>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                             <div>
-                              <p><strong>Email:</strong> {seller.email}</p>
-                              <p><strong>Phone:</strong> {seller.phone}</p>
-                              <p><strong>Business:</strong> {seller.seller?.businessName}</p>
+                              <p><strong>Email:</strong> {seller.user?.email || seller.email}</p>
+                              <p><strong>Phone:</strong> {seller.user?.phone || seller.phone}</p>
+                              <p><strong>Business:</strong> {seller.businessName}</p>
                             </div>
                             <div>
-                              <p><strong>Contact Person:</strong> {seller.seller?.contactPerson}</p>
-                              <p><strong>Business Phone:</strong> {seller.seller?.businessPhone}</p>
-                              <p><strong>KRA PIN:</strong> {seller.seller?.kraPin}</p>
+                              <p><strong>Contact Person:</strong> {seller.contactPerson}</p>
+                              <p><strong>Business Phone:</strong> {seller.businessPhone}</p>
+                              <p><strong>KRA PIN:</strong> {seller.kraPin}</p>
                             </div>
                           </div>
                           <p className="text-sm text-gray-600 mt-2">
-                            <strong>Applied:</strong> {new Date(seller.createdAt).toLocaleDateString()}
+                            <strong>Applied:</strong> {new Date(seller.user?.createdAt || seller.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="flex flex-col gap-2 ml-4">
-                          {seller.sellerStatus === 'pending' && (
+                          {(seller.user?.sellerStatus || seller.sellerStatus) === 'pending' && (
                             <>
                               <Button
                                 size="sm"
@@ -1341,7 +1341,7 @@ const AdminDashboard = () => {
                                   const commissionRate = prompt('Enter commission rate (default 10%):', '10');
                                   if (commissionRate !== null) {
                                     updateSellerStatusMutation.mutate({
-                                      sellerId: seller._id,
+                                      sellerId: seller.user?._id || seller._id,
                                       status: 'approved',
                                       commissionRate: parseFloat(commissionRate) || 10
                                     });
@@ -1355,9 +1355,9 @@ const AdminDashboard = () => {
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => {
-                                  if (window.confirm(`Reject seller application for ${seller.name}?`)) {
+                                  if (window.confirm(`Reject seller application for ${seller.user?.name || seller.name}?`)) {
                                     updateSellerStatusMutation.mutate({
-                                      sellerId: seller._id,
+                                      sellerId: seller.user?._id || seller._id,
                                       status: 'rejected'
                                     });
                                   }
@@ -1368,10 +1368,10 @@ const AdminDashboard = () => {
                               </Button>
                             </>
                           )}
-                          {seller.sellerStatus === 'approved' && (
+                          {(seller.user?.sellerStatus || seller.sellerStatus) === 'approved' && (
                             <Badge variant="default">Active Seller</Badge>
                           )}
-                          {seller.sellerStatus === 'rejected' && (
+                          {(seller.user?.sellerStatus || seller.sellerStatus) === 'rejected' && (
                             <Badge variant="destructive">Rejected</Badge>
                           )}
                         </div>
