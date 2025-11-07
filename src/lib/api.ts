@@ -29,7 +29,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only handle 401 errors for login/register endpoints
+    if (error.response?.status === 401 && (
+      error.config?.url?.includes('/auth/login') ||
+      error.config?.url?.includes('/auth/register') ||
+      error.config?.url?.includes('/auth/profile') && error.config?.method === 'post'
+    )) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
