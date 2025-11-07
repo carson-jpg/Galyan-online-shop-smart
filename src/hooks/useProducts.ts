@@ -18,8 +18,10 @@ interface Product {
   numReviews: number;
   isActive: boolean;
   tags: string[];
-  sizes?: string[];
-  colors?: string[];
+  attributes?: Array<{
+    name: string;
+    values: string[];
+  }>;
   flashSale?: {
     _id: string;
     flashPrice: number;

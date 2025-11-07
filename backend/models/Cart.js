@@ -17,13 +17,10 @@ const cartItemSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  size: {
-    type: String,
-    trim: true
-  },
-  color: {
-    type: String,
-    trim: true
+  attributes: {
+    type: Map,
+    of: String,
+    default: {}
   }
 }, { _id: true });
 

@@ -14,6 +14,28 @@ import api from '@/lib/api';
 import { Upload, X, Plus, Users, Trash2, BarChart3, TrendingUp, Package, ShoppingCart, DollarSign, User, Zap } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
 
+// Helper functions for attribute parsing
+const parseAttributesString = (str: string) => {
+  const attributes = [];
+  const parts = str.split(';').map(p => p.trim()).filter(p => p);
+
+  for (const part of parts) {
+    const [name, valuesStr] = part.split(':').map(p => p.trim());
+    if (name && valuesStr) {
+      const values = valuesStr.split(',').map(v => v.trim()).filter(v => v);
+      if (values.length > 0) {
+        attributes.push({ name, values });
+      }
+    }
+  }
+
+  return attributes;
+};
+
+const formatAttributesToString = (attributes: Array<{ name: string; values: string[] }>) => {
+  return attributes.map(attr => `${attr.name}: ${attr.values.join(', ')}`).join('; ');
+};
+
 interface Product {
   _id: string;
   name: string;
@@ -24,6 +46,10 @@ interface Product {
   stock: number;
   brand?: string;
   isActive: boolean;
+  attributes?: Array<{
+    name: string;
+    values: string[];
+  }>;
 }
 
 interface Category {
@@ -90,6 +116,7 @@ const AdminDashboard = () => {
     stock: '',
     brand: '',
     tags: '',
+    attributes: '',
   });
   const [flashSaleForm, setFlashSaleForm] = useState({
     productId: '',
@@ -316,6 +343,9 @@ const AdminDashboard = () => {
     formData.append('stock', productForm.stock);
     formData.append('brand', productForm.brand);
     formData.append('tags', productForm.tags);
+    // Parse attributes from "Color: Red, Blue; Size: S, M, L" format to JSON
+    const attributes = productForm.attributes ? parseAttributesString(productForm.attributes) : [];
+    formData.append('attributes', JSON.stringify(attributes));
 
     selectedImages.forEach((image, index) => {
       formData.append('images', image);
@@ -342,6 +372,7 @@ const AdminDashboard = () => {
       stock: '',
       brand: '',
       tags: '',
+      attributes: '',
     });
     setSelectedImages([]);
   };
@@ -357,6 +388,7 @@ const AdminDashboard = () => {
       stock: product.stock.toString(),
       brand: product.brand || '',
       tags: '', // TODO: Add tags from product if available
+      attributes: product.attributes ? formatAttributesToString(product.attributes) : '',
     });
     setActiveTab('add-product');
   };
@@ -667,76 +699,90 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
+ 
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                value={productForm.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                rows={4}
+                required
+              />
+            </div>
 
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  value={productForm.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={4}
+                <Label htmlFor="price">Price (KSh) *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={productForm.price}
+                  onChange={(e) => handleInputChange('price', e.target.value)}
                   required
                 />
               </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="price">Price (KSh) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={productForm.price}
-                    onChange={(e) => handleInputChange('price', e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="originalPrice">Original Price (KSh)</Label>
-                  <Input
-                    id="originalPrice"
-                    type="number"
-                    value={productForm.originalPrice}
-                    onChange={(e) => handleInputChange('originalPrice', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="stock">Stock Quantity *</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    value={productForm.stock}
-                    onChange={(e) => handleInputChange('stock', e.target.value)}
-                    required
-                  />
-                </div>
+              <div>
+                <Label htmlFor="originalPrice">Original Price (KSh)</Label>
+                <Input
+                  id="originalPrice"
+                  type="number"
+                  value={productForm.originalPrice}
+                  onChange={(e) => handleInputChange('originalPrice', e.target.value)}
+                />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="category">Category *</Label>
-                  <Select value={productForm.category} onValueChange={(value) => handleInputChange('category', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((category) => (
-                        <SelectItem key={category._id} value={category.name}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="tags">Tags (comma separated)</Label>
-                  <Input
-                    id="tags"
-                    value={productForm.tags}
-                    onChange={(e) => handleInputChange('tags', e.target.value)}
-                    placeholder="e.g. electronics, smartphone, 5g"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="stock">Stock Quantity *</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  value={productForm.stock}
+                  onChange={(e) => handleInputChange('stock', e.target.value)}
+                  required
+                />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category">Category *</Label>
+                <Select value={productForm.category} onValueChange={(value) => handleInputChange('category', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories?.map((category) => (
+                      <SelectItem key={category._id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="tags">Tags (comma separated)</Label>
+                <Input
+                  id="tags"
+                  value={productForm.tags}
+                  onChange={(e) => handleInputChange('tags', e.target.value)}
+                  placeholder="e.g. electronics, smartphone, 5g"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="attributes">Attributes (e.g. Color: Red, Blue; Size: S, M, L)</Label>
+              <Textarea
+                id="attributes"
+                value={productForm.attributes}
+                onChange={(e) => handleInputChange('attributes', e.target.value)}
+                placeholder='e.g. [{"name": "Color", "values": ["Red", "Blue"]}, {"name": "Size", "values": ["S", "M", "L"]}]'
+                rows={4}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Enter attributes in format: AttributeName: value1, value2; AttributeName2: value1, value2
+              </p>
+            </div>
 
               <div>
                 <Label>Product Images (Max 5) *</Label>

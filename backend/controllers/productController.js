@@ -5,6 +5,24 @@ const Seller = require('../models/Seller');
 // Import logger
 const logger = require('../utils/logger');
 
+// Helper function to parse attributes string
+const parseAttributesString = (str) => {
+  const attributes = [];
+  const parts = str.split(';').map(p => p.trim()).filter(p => p);
+
+  for (const part of parts) {
+    const [name, valuesStr] = part.split(':').map(p => p.trim());
+    if (name && valuesStr) {
+      const values = valuesStr.split(',').map(v => v.trim()).filter(v => v);
+      if (values.length > 0) {
+        attributes.push({ name, values });
+      }
+    }
+  }
+
+  return attributes;
+};
+
 // @desc    Get all products
 // @route   GET /api/products
 // @access  Public
@@ -192,6 +210,7 @@ const createProduct = async (req, res) => {
       stock,
       brand,
       tags,
+      attributes,
     } = req.body;
 
     // Validate required fields
@@ -272,6 +291,7 @@ const createProduct = async (req, res) => {
       stock: Number(stock),
       brand: brand ? brand.trim() : undefined,
       tags: tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
+      attributes: attributes ? parseAttributesString(attributes) : [],
     };
 
     // Add seller information for sellers
@@ -369,6 +389,7 @@ const updateProduct = async (req, res) => {
       brand,
       tags,
       isActive,
+      attributes,
     } = req.body;
 
     const product = await Product.findById(req.params.id);
@@ -397,6 +418,7 @@ const updateProduct = async (req, res) => {
       product.brand = brand || product.brand;
       product.tags = tags || product.tags;
       product.isActive = isActive !== undefined ? isActive : product.isActive;
+      product.attributes = attributes ? parseAttributesString(attributes) : product.attributes;
 
       const updatedProduct = await product.save();
       await updatedProduct.populate('category', 'name');

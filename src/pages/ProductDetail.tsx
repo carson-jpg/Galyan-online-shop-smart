@@ -42,8 +42,7 @@ const ProductDetail = () => {
   const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [selectedSize, setSelectedSize] = useState<string>('');
-  const [selectedColor, setSelectedColor] = useState<string>('');
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -86,23 +85,18 @@ const ProductDetail = () => {
       return;
     }
 
-    // Check if size and color are required and selected
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-      toast({
-        title: "Please select a size",
-        description: "You must select a size before adding to cart",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (product.colors && product.colors.length > 0 && !selectedColor) {
-      toast({
-        title: "Please select a color",
-        description: "You must select a color before adding to cart",
-        variant: "destructive",
-      });
-      return;
+    // Check if attributes are required and selected
+    if (product.attributes && product.attributes.length > 0) {
+      for (const attr of product.attributes) {
+        if (!selectedAttributes[attr.name]) {
+          toast({
+            title: `Please select a ${attr.name}`,
+            description: `You must select a ${attr.name} before adding to cart`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
     }
 
     // If there's an active flash sale, use flash sale purchase instead
@@ -113,8 +107,7 @@ const ProductDetail = () => {
         {
           productId: product._id,
           quantity: 1,
-          size: selectedSize,
-          color: selectedColor
+          attributes: selectedAttributes
         },
         {
           onSuccess: () => {
@@ -137,8 +130,7 @@ const ProductDetail = () => {
         {
           productId: product._id,
           quantity: 1,
-          size: selectedSize,
-          color: selectedColor
+          attributes: selectedAttributes
         },
         {
           onSuccess: () => {
@@ -466,46 +458,33 @@ const ProductDetail = () => {
 
               <Separator />
 
-              {/* Size and Color Selection */}
-              {(product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0) ? (
+              {/* Dynamic Attributes Selection */}
+              {product.attributes && product.attributes.length > 0 && (
                 <div className="space-y-4">
-                  {product.sizes && product.sizes.length > 0 && (
-                    <div>
-                      <label className="font-semibold mb-2 block">Size</label>
-                      <Select value={selectedSize} onValueChange={setSelectedSize}>
+                  {product.attributes.map((attr) => (
+                    <div key={attr.name}>
+                      <label className="font-semibold mb-2 block">{attr.name}</label>
+                      <Select
+                        value={selectedAttributes[attr.name] || ''}
+                        onValueChange={(value) =>
+                          setSelectedAttributes(prev => ({ ...prev, [attr.name]: value }))
+                        }
+                      >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a size" />
+                          <SelectValue placeholder={`Select a ${attr.name}`} />
                         </SelectTrigger>
                         <SelectContent>
-                          {product.sizes.map((size) => (
-                            <SelectItem key={size} value={size}>
-                              {size}
+                          {attr.values.map((value) => (
+                            <SelectItem key={value} value={value}>
+                              {value}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
-
-                  {product.colors && product.colors.length > 0 && (
-                    <div>
-                      <label className="font-semibold mb-2 block">Color</label>
-                      <Select value={selectedColor} onValueChange={setSelectedColor}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a color" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {product.colors.map((color) => (
-                            <SelectItem key={color} value={color}>
-                              {color}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  ))}
                 </div>
-              ) : null}
+              )}
 
               <Separator />
 

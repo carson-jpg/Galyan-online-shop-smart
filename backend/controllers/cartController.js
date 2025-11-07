@@ -26,7 +26,7 @@ const getCart = async (req, res) => {
 // @access  Private
 const addToCart = async (req, res) => {
   try {
-    const { productId, quantity, size, color } = req.body;
+    const { productId, quantity, attributes } = req.body;
 
     const product = await Product.findById(productId);
 
@@ -38,23 +38,23 @@ const addToCart = async (req, res) => {
       return res.status(400).json({ message: 'Insufficient stock' });
     }
 
-    // Validate size and color if provided
-    if (size && product.sizes && !product.sizes.includes(size)) {
-      return res.status(400).json({ message: 'Invalid size selected' });
-    }
-
-    if (color && product.colors && !product.colors.includes(color)) {
-      return res.status(400).json({ message: 'Invalid color selected' });
+    // Validate attributes if provided
+    if (attributes && product.attributes) {
+      for (const attr of product.attributes) {
+        const selectedValue = attributes[attr.name];
+        if (selectedValue && !attr.values.includes(selectedValue)) {
+          return res.status(400).json({ message: `Invalid ${attr.name} selected` });
+        }
+      }
     }
 
     let cart = await Cart.findOne({ user: req.user._id });
 
     if (cart) {
-      // Check if item already exists in cart (including size and color)
+      // Check if item already exists in cart (including attributes)
       const itemIndex = cart.items.findIndex(
         (item) => item.product.toString() === productId &&
-                  item.size === size &&
-                  item.color === color
+                  JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
       );
 
       if (itemIndex > -1) {
@@ -67,8 +67,7 @@ const addToCart = async (req, res) => {
           product: productId,
           quantity,
           price: product.price,
-          size,
-          color,
+          attributes: attributes || {},
         });
         console.log(`Added new item for product ${productId}`);
       }
@@ -81,8 +80,7 @@ const addToCart = async (req, res) => {
             product: productId,
             quantity,
             price: product.price,
-            size,
-            color,
+            attributes: attributes || {},
           },
         ],
       });

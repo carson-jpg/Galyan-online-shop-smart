@@ -12,6 +12,28 @@ import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/api';
 import { Upload, X, Plus, Package, ShoppingCart, DollarSign, TrendingUp, BarChart3, Settings, Store } from 'lucide-react';
 
+// Helper functions for attribute parsing
+const parseAttributesString = (str: string) => {
+  const attributes = [];
+  const parts = str.split(';').map(p => p.trim()).filter(p => p);
+
+  for (const part of parts) {
+    const [name, valuesStr] = part.split(':').map(p => p.trim());
+    if (name && valuesStr) {
+      const values = valuesStr.split(',').map(v => v.trim()).filter(v => v);
+      if (values.length > 0) {
+        attributes.push({ name, values });
+      }
+    }
+  }
+
+  return attributes;
+};
+
+const formatAttributesToString = (attributes: Array<{ name: string; values: string[] }>) => {
+  return attributes.map(attr => `${attr.name}: ${attr.values.join(', ')}`).join('; ');
+};
+
 interface Product {
   _id: string;
   name: string;
@@ -24,6 +46,10 @@ interface Product {
   isActive: boolean;
   images: string[];
   seller: string;
+  attributes?: Array<{
+    name: string;
+    values: string[];
+  }>;
 }
 
 interface Order {
@@ -69,6 +95,7 @@ const SellerDashboard = () => {
     stock: '',
     brand: '',
     tags: '',
+    attributes: '',
   });
 
   // Fetch seller profile
@@ -212,6 +239,9 @@ const SellerDashboard = () => {
     formData.append('stock', productForm.stock);
     formData.append('brand', productForm.brand);
     formData.append('tags', productForm.tags);
+    // Parse attributes from "Color: Red, Blue; Size: S, M, L" format to JSON
+    const attributes = productForm.attributes ? parseAttributesString(productForm.attributes) : [];
+    formData.append('attributes', JSON.stringify(attributes));
 
     selectedImages.forEach((image, index) => {
       formData.append('images', image);
@@ -238,6 +268,7 @@ const SellerDashboard = () => {
       stock: '',
       brand: '',
       tags: '',
+      attributes: '',
     });
     setSelectedImages([]);
   };
@@ -253,6 +284,7 @@ const SellerDashboard = () => {
       stock: product.stock.toString(),
       brand: product.brand || '',
       tags: '', // TODO: Add tags from product if available
+      attributes: product.attributes ? formatAttributesToString(product.attributes) : '',
     });
     setActiveTab('add-product');
   };
@@ -549,9 +581,8 @@ const SellerDashboard = () => {
                       onChange={(e) => handleInputChange('brand', e.target.value)}
                     />
                   </div>
-                </div>
-
-                <div>
+ 
+                  <div>
                   <Label htmlFor="description">Description *</Label>
                   <Textarea
                     id="description"
@@ -619,6 +650,21 @@ const SellerDashboard = () => {
                       placeholder="e.g. electronics, smartphone, 5g"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="attributes">Attributes (e.g. Color: Red, Blue; Size: S, M, L)</Label>
+                  <Textarea
+                    id="attributes"
+                    value={productForm.attributes}
+                    onChange={(e) => handleInputChange('attributes', e.target.value)}
+                    placeholder='e.g. [{"name": "Color", "values": ["Red", "Blue"]}, {"name": "Size", "values": ["S", "M", "L"]}]'
+                    rows={4}
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Enter attributes in format: AttributeName: value1, value2; AttributeName2: value1, value2
+                  </p>
+                </div>
                 </div>
 
                 <div>

@@ -57,13 +57,17 @@ const productSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
-  sizes: [{
-    type: String,
-    trim: true
-  }],
-  colors: [{
-    type: String,
-    trim: true
+  attributes: [{
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    values: [{
+      type: String,
+      required: true,
+      trim: true
+    }]
   }],
   flashSale: {
     type: mongoose.Schema.Types.ObjectId,
