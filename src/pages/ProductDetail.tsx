@@ -461,6 +461,7 @@ const ProductDetail = () => {
               {/* Dynamic Attributes Selection */}
               {product.attributes && product.attributes.length > 0 && (
                 <div className="space-y-4">
+                  <h3 className="font-semibold">Product Options</h3>
                   {product.attributes.map((attr) => (
                     <div key={attr.name}>
                       <label className="font-semibold mb-2 block">{attr.name}</label>
