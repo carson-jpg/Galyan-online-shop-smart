@@ -104,7 +104,7 @@ export const useAuth = () => {
     queryClient.clear();
   };
 
-  const { data: userProfile } = useQuery({
+  const { data: userProfile, error: profileError } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       const response = await api.get('/auth/profile');
@@ -113,7 +113,24 @@ export const useAuth = () => {
     enabled: !!token,
     refetchOnMount: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401/403 errors (authentication issues)
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
+
+  // Handle authentication errors
+  useEffect(() => {
+    if (profileError?.response?.status === 401 || profileError?.response?.status === 403) {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+  }, [profileError]);
 
   return {
     user: user || userProfile,
