@@ -78,7 +78,7 @@ const SellerDashboard = () => {
       const response = await api.get('/auth/seller-profile');
       return response.data;
     },
-    enabled: !!user && user.role === 'seller',
+    enabled: !!user && user?.role === 'seller',
   });
 
   // Fetch seller products
@@ -88,7 +88,7 @@ const SellerDashboard = () => {
       const response = await api.get('/products?seller=true');
       return response.data.products as Product[];
     },
-    enabled: !!user && user.role === 'seller',
+    enabled: !!user && user?.role === 'seller',
   });
 
   // Fetch seller orders
@@ -98,7 +98,7 @@ const SellerDashboard = () => {
       const response = await api.get('/orders?seller=true');
       return response.data;
     },
-    enabled: !!user && user.role === 'seller',
+    enabled: !!user && user?.role === 'seller',
   });
 
   // Fetch categories
@@ -108,7 +108,7 @@ const SellerDashboard = () => {
       const response = await api.get('/admin/categories');
       return response.data as { _id: string; name: string }[];
     },
-    enabled: !!user && user.role === 'seller',
+    enabled: !!user && user?.role === 'seller',
   });
 
   // Fetch seller stats
@@ -118,7 +118,7 @@ const SellerDashboard = () => {
       const response = await api.get('/orders/seller-stats');
       return response.data as SellerStats;
     },
-    enabled: !!user && user.role === 'seller',
+    enabled: !!user && user?.role === 'seller',
   });
 
   // Create product mutation
