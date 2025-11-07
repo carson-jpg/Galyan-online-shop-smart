@@ -9,6 +9,8 @@ const socketIo = require('socket.io');
 
 dotenv.config();
 
+const app = express();
+
 // Create HTTP server and Socket.IO
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -18,8 +20,6 @@ const io = socketIo(server, {
     credentials: true
   }
 });
-
-const app = express();
 
 // Middleware
 app.use(cors());
