@@ -75,19 +75,19 @@ class SocketService {
     });
   }
 
-  onNewMessage(callback: (data: any) => void) {
+  onNewMessage(callback: (data: unknown) => void) {
     this.socket?.on('newMessage', callback);
   }
 
-  onMessageNotification(callback: (data: any) => void) {
+  onMessageNotification(callback: (data: unknown) => void) {
     this.socket?.on('messageNotification', callback);
   }
 
-  onUserTyping(callback: (data: any) => void) {
+  onUserTyping(callback: (data: unknown) => void) {
     this.socket?.on('userTyping', callback);
   }
 
-  onError(callback: (error: any) => void) {
+  onError(callback: (error: unknown) => void) {
     this.socket?.on('error', callback);
   }
 
@@ -97,7 +97,7 @@ class SocketService {
   }
 
   // Remove listeners
-  off(event: string, callback?: (...args: any[]) => void) {
+  off(event: string, callback?: (...args: unknown[]) => void) {
     if (callback) {
       this.socket?.off(event, callback);
     } else {

@@ -52,10 +52,11 @@ const ReviewForm = ({ productId, onSubmit, onCancel, initialData, isEditing = fa
           ? "Your review has been updated successfully."
           : "Thank you for your review! It will be published after moderation.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to submit review";
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to submit review",
+        description: message,
         variant: "destructive",
       });
     } finally {

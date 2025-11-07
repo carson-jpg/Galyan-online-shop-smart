@@ -104,11 +104,6 @@ const AppContent = () => {
     return <Navigate to="/admin" replace />;
   }
 
-  // If approved seller user, redirect immediately (but not if already on seller dashboard)
-  if (isAuthenticated && user?.role === 'seller' && user?.sellerStatus === 'approved' && window.location.pathname !== '/seller-dashboard') {
-    return <Navigate to="/seller-dashboard" replace />;
-  }
-
   return (
     <BrowserRouter>
       <Routes>

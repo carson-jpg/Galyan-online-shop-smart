@@ -10,7 +10,7 @@ interface Notification {
   message: string;
   timestamp: Date;
   read: boolean;
-  data?: any;
+  data?: unknown;
 }
 
 export const useNotifications = () => {
@@ -24,12 +24,17 @@ export const useNotifications = () => {
       const socket = socketService.connect(user._id);
 
       // Listen for message notifications
-      const handleMessageNotification = (data: any) => {
+      const handleMessageNotification = (data: unknown) => {
+        const chatName = typeof data === 'object' && data !== null && 'chat' in data && data.chat && typeof data.chat === 'object' && data.chat !== null
+          ? (('customer' in data.chat && data.chat.customer && typeof data.chat.customer === 'object' && 'name' in data.chat.customer && typeof data.chat.customer.name === 'string' ? data.chat.customer.name : undefined) ||
+             ('seller' in data.chat && data.chat.seller && typeof data.chat.seller === 'object' && 'businessName' in data.chat.seller && typeof data.chat.seller.businessName === 'string' ? data.chat.seller.businessName : undefined))
+          : 'Unknown';
+
         const notification: Notification = {
           id: `msg_${Date.now()}`,
           type: 'message',
           title: 'New Message',
-          message: `New message from ${data.chat?.customer?.name || data.chat?.seller?.businessName || 'Unknown'}`,
+          message: `New message from ${chatName}`,
           timestamp: new Date(),
           read: false,
           data: data

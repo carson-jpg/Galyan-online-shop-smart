@@ -113,17 +113,17 @@ export const useChat = (chatId: string | null) => {
       socketService.joinChat(chatId, user._id);
 
       // Listen for new messages
-      const handleNewMessage = (data: any) => {
-        if (data.chatId === chatId) {
+      const handleNewMessage = (data: unknown) => {
+        if (typeof data === 'object' && data !== null && 'chatId' in data && data.chatId === chatId) {
           queryClient.invalidateQueries({ queryKey: ['chat', chatId] });
           queryClient.invalidateQueries({ queryKey: ['userChats'] });
         }
       };
 
       // Listen for typing indicators
-      const handleTyping = (data: any) => {
-        if (data.chatId === chatId && data.userId !== user._id) {
-          setIsTyping(data.isTyping);
+      const handleTyping = (data: unknown) => {
+        if (typeof data === 'object' && data !== null && 'chatId' in data && 'userId' in data && 'isTyping' in data && data.chatId === chatId && data.userId !== user._id) {
+          setIsTyping(data.isTyping as boolean);
         }
       };
 

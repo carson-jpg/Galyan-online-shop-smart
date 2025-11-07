@@ -63,10 +63,11 @@ const ProductCard = ({
             description: `${name} has been added to your cart`,
           });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+          const message = error instanceof Error ? error.message : "Failed to add to cart";
           toast({
             title: "Error",
-            description: error.response?.data?.message || "Failed to add to cart",
+            description: message,
             variant: "destructive",
           });
         },
