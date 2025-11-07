@@ -281,43 +281,6 @@ const SellerDashboard = () => {
     );
   }
 
-  // Check if user needs to refresh their status
-  const { data: currentUserProfile } = useQuery({
-    queryKey: ['currentUserProfile'],
-    queryFn: async () => {
-      const response = await api.get('/auth/profile');
-      return response.data;
-    },
-    enabled: !!user,
-    refetchOnMount: true,
-    staleTime: 0,
-  });
-
-  const currentUser = currentUserProfile || user;
-
-  if (currentUser?.sellerStatus !== 'approved') {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">
-            {currentUser?.sellerStatus === 'rejected' ? 'Seller Application Rejected' : 'Seller Account Pending Approval'}
-          </h1>
-          <p className="text-gray-600">
-            {currentUser?.sellerStatus === 'rejected'
-              ? 'Your seller application was rejected. Please contact support for more information.'
-              : `Your seller application is ${currentUser?.sellerStatus || 'pending'}. Please wait for admin approval.`
-            }
-          </p>
-          <button
-            onClick={() => window.location.href = '/'}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Go Back Home
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
