@@ -56,7 +56,7 @@ const SellerRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== 'seller') {
+  if (user?.role !== 'seller' || user?.sellerStatus !== 'approved') {
     return <Navigate to="/" replace />;
   }
 
