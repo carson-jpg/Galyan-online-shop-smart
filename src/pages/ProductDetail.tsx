@@ -457,19 +457,19 @@ const ProductDetail = () => {
               </div>
 
               {/* Dynamic Attributes Selection */}
-              {product.attributes && product.attributes.length > 0 && (
+              {product.attributes && product.attributes.length > 0 ? (
                 <div className="space-y-6">
                   {product.attributes.map((attr) => (
                     <div key={attr.name} className="space-y-3">
                       <label className="font-semibold text-base">{attr.name}:</label>
                       <div className="grid grid-cols-2 gap-2">
-                        {attr.values.map((value) => (
+                        {attr.values && attr.values.map((value) => (
                           <button
                             key={value}
                             onClick={() => setSelectedAttributes(prev => ({ ...prev, [attr.name]: value }))}
-                            className={`p-3 border rounded-lg text-left transition-colors ${
+                            className={`p-3 border rounded-lg text-center transition-colors ${
                               selectedAttributes[attr.name] === value
-                                ? 'border-primary bg-primary/10 text-primary'
+                                ? 'border-primary bg-primary/10 text-primary font-medium'
                                 : 'border-gray-200 hover:border-gray-300'
                             }`}
                           >
@@ -480,7 +480,7 @@ const ProductDetail = () => {
                     </div>
                   ))}
                 </div>
-              )}
+              ) : null}
 
               {product.attributes && product.attributes.length > 0 && <Separator />}
 
