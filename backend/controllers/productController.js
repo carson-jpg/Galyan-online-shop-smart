@@ -314,6 +314,9 @@ const createProduct = async (req, res) => {
       attributes: productData.attributes ? JSON.stringify(productData.attributes, null, 2) : '[]'
     });
 
+    console.log('Raw attributes from request:', attributes);
+    console.log('Parsed attributes:', productData.attributes);
+
     const product = new Product(productData);
 
     console.log('Saving product to database...');
