@@ -86,7 +86,7 @@ const ProductDetail = () => {
     }
 
     // Check if attributes are required and selected
-    if (product.attributes && product.attributes.length > 0) {
+    if (product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0) {
       for (const attr of product.attributes) {
         if (!selectedAttributes[attr.name]) {
           toast({
@@ -457,7 +457,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Dynamic Attributes Selection */}
-              {product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0 && (
+              {product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0 ? (
                 <div className="space-y-6">
                   {product.attributes.map((attr, attrIndex) => (
                     <div key={`${attr.name}-${attrIndex}`} className="space-y-3">
@@ -480,9 +480,9 @@ const ProductDetail = () => {
                     </div>
                   ))}
                 </div>
-              )}
+              ) : null}
 
-              {product.attributes && product.attributes.length > 0 && <Separator />}
+              {product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0 && <Separator />}
 
               <div>
                 <h3 className="font-semibold mb-2">Description</h3>
