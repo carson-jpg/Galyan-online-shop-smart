@@ -104,20 +104,21 @@ export const useAuth = () => {
     queryClient.clear();
   };
 
-  const { data: userProfile } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: async () => {
-      const response = await api.get('/auth/profile');
-      return response.data;
-    },
-    enabled: !!token,
-    refetchOnMount: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false, // Disable retries to prevent logout loops
-  });
+  // Remove the userProfile query to prevent authentication issues
+  // const { data: userProfile } = useQuery({
+  //   queryKey: ['userProfile'],
+  //   queryFn: async () => {
+  //     const response = await api.get('/auth/profile');
+  //     return response.data;
+  //   },
+  //   enabled: !!token,
+  //   refetchOnMount: false,
+  //   staleTime: 5 * 60 * 1000, // 5 minutes
+  //   retry: false, // Disable retries to prevent logout loops
+  // });
 
   return {
-    user: user || userProfile,
+    user: user,
     token,
     isAuthenticated: !!token,
     isAdmin: user?.role === 'admin',
