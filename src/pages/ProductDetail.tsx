@@ -457,15 +457,15 @@ const ProductDetail = () => {
               </div>
 
               {/* Dynamic Attributes Selection */}
-              {product.attributes && product.attributes.length > 0 ? (
+              {product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0 && (
                 <div className="space-y-6">
-                  {product.attributes.map((attr) => (
-                    <div key={attr.name} className="space-y-3">
+                  {product.attributes.map((attr, attrIndex) => (
+                    <div key={`${attr.name}-${attrIndex}`} className="space-y-3">
                       <label className="font-semibold text-base">{attr.name}:</label>
                       <div className="grid grid-cols-2 gap-2">
-                        {attr.values && attr.values.map((value) => (
+                        {attr.values && Array.isArray(attr.values) && attr.values.map((value, valueIndex) => (
                           <button
-                            key={value}
+                            key={`${value}-${valueIndex}`}
                             onClick={() => setSelectedAttributes(prev => ({ ...prev, [attr.name]: value }))}
                             className={`p-3 border rounded-lg text-center transition-colors ${
                               selectedAttributes[attr.name] === value
@@ -480,7 +480,7 @@ const ProductDetail = () => {
                     </div>
                   ))}
                 </div>
-              ) : null}
+              )}
 
               {product.attributes && product.attributes.length > 0 && <Separator />}
 
