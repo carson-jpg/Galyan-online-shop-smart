@@ -126,11 +126,7 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/seller-register" element={<SellerRegister />} />
-        <Route path="/seller-dashboard" element={
-          <SellerRoute>
-            <SellerDashboard />
-          </SellerRoute>
-        } />
+        <Route path="/seller-dashboard" element={<SellerDashboard />} />
         <Route path="/seller/:sellerId" element={<SellerStore />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
