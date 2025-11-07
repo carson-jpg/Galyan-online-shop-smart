@@ -456,8 +456,6 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <Separator />
-
               {/* Dynamic Attributes Selection */}
               {product.attributes && product.attributes.length > 0 && (
                 <div className="space-y-6">
@@ -483,6 +481,22 @@ const ProductDetail = () => {
                   ))}
                 </div>
               )}
+
+              {product.attributes && product.attributes.length > 0 && <Separator />}
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Delivery Information:</h3>
+                  <p className="text-muted-foreground">Ships from Nairobi Central, select an address to view delivery times.</p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">Quantity</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">1</span>
+                  </div>
+                </div>
+              </div>
 
               <Separator />
 
@@ -524,14 +538,14 @@ const ProductDetail = () => {
               <Separator />
 
               {/* Actions */}
-              <div className="flex gap-4">
+              <div className="space-y-3">
                 <Button
                   onClick={handleAddToCart}
                   disabled={
                     (isFlashSaleActive ? isFlashSaleSoldOut : product.stock === 0) ||
                     addToCartMutation.isPending
                   }
-                  className="flex-1"
+                  className="w-full"
                   size="lg"
                 >
                   {addToCartMutation.isPending ? (
@@ -546,11 +560,8 @@ const ProductDetail = () => {
                     : "Add to Cart"
                   }
                 </Button>
-                <Button variant="outline" size="lg">
-                  <Heart className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="lg">
-                  <Share2 className="h-4 w-4" />
+                <Button variant="outline" className="w-full" size="lg">
+                  Buy Now
                 </Button>
               </div>
 
