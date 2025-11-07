@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import Index from "./pages/Index";
@@ -66,6 +66,7 @@ const UserRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppContent = () => {
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Load dark mode preference from localStorage
@@ -100,14 +101,18 @@ const AppContent = () => {
   }, []);
 
   // If admin user, redirect immediately
-  if (isAuthenticated && user?.role === 'admin' && window.location.pathname !== '/admin') {
-    return <Navigate to="/admin" replace />;
-  }
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'admin' && window.location.pathname !== '/admin') {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // If approved seller user, redirect immediately (but not if already on seller dashboard)
-  if (isAuthenticated && user?.role === 'seller' && user?.sellerStatus === 'approved' && window.location.pathname !== '/seller-dashboard') {
-    return <Navigate to="/seller-dashboard" replace />;
-  }
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'seller' && user?.sellerStatus === 'approved' && window.location.pathname !== '/seller-dashboard') {
+      navigate('/seller-dashboard', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <BrowserRouter>
