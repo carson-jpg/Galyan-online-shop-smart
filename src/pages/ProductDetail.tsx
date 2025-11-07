@@ -467,12 +467,12 @@ const ProductDetail = () => {
                           <a href="#" className="text-primary hover:underline">Size Guide</a>
                         </div>
                       )}
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className={attr.name.toLowerCase() === 'size' ? 'flex flex-col gap-1' : 'flex flex-wrap gap-2'}>
                         {attr.values && Array.isArray(attr.values) && attr.values.map((value, valueIndex) => (
                           <button
                             key={`${value}-${valueIndex}`}
                             onClick={() => setSelectedAttributes(prev => ({ ...prev, [attr.name]: value }))}
-                            className={`p-3 border rounded-lg text-center transition-colors ${
+                            className={`px-3 py-1 border rounded text-sm transition-colors ${
                               selectedAttributes[attr.name] === value
                                 ? 'border-primary bg-primary/10 text-primary font-medium'
                                 : 'border-gray-200 hover:border-gray-300'
