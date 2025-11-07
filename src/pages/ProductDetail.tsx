@@ -46,6 +46,46 @@ const ProductDetail = () => {
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Parse attributes if they come as string from API
+  const parsedAttributes = (() => {
+    let attributes = product?.attributes;
+    if (typeof attributes === 'string') {
+      try {
+        const parsed = JSON.parse(attributes);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    } else if (Array.isArray(attributes)) {
+      return attributes;
+    } else if (attributes && typeof attributes === 'object') {
+      // If it's an object, try to convert it to array
+      try {
+        const stringified = JSON.stringify(attributes);
+        const parsed = JSON.parse(stringified);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  })();
+
+  // Parse description to avoid displaying raw JSON
+  const parsedDescription = (() => {
+    let description = product?.description;
+    if (typeof description === 'string') {
+      try {
+        JSON.parse(description);
+        return 'Product description not available.';
+      } catch (e) {
+        return description;
+      }
+    }
+    return description;
+  })();
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -86,8 +126,8 @@ const ProductDetail = () => {
     }
 
     // Check if attributes are required and selected
-    if (product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0) {
-      for (const attr of product.attributes) {
+    if (parsedAttributes && Array.isArray(parsedAttributes) && parsedAttributes.length > 0) {
+      for (const attr of parsedAttributes) {
         if (!selectedAttributes[attr.name]) {
           toast({
             title: `Please select a ${attr.name}`,
@@ -457,9 +497,9 @@ const ProductDetail = () => {
               </div>
 
               {/* Dynamic Attributes Selection */}
-              {product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0 ? (
+              {parsedAttributes && Array.isArray(parsedAttributes) && parsedAttributes.length > 0 ? (
                 <div className="space-y-6">
-                  {product.attributes.map((attr, attrIndex) => (
+                  {parsedAttributes.map((attr, attrIndex) => (
                     <div key={`${attr.name}-${attrIndex}`} className="space-y-3">
                       <label className="font-semibold text-base">{attr.name}:</label>
                       {attr.name.toLowerCase() === 'size' && (
@@ -487,11 +527,11 @@ const ProductDetail = () => {
                 </div>
               ) : null}
 
-              {product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0 && <Separator />}
+              {parsedAttributes && Array.isArray(parsedAttributes) && parsedAttributes.length > 0 && <Separator />}
 
               <div>
                 <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground">{product.description}</p>
+                <p className="text-muted-foreground">{parsedDescription}</p>
               </div>
 
               {product.brand && (
