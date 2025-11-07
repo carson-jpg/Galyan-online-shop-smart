@@ -132,7 +132,7 @@ const SellerDashboard = () => {
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      const response = await api.get('/admin/categories');
+      const response = await api.get('/products/api/categories');
       return response.data as { _id: string; name: string }[];
     },
     enabled: !!user && user?.role === 'seller',

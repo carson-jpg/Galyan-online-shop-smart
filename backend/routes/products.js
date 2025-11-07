@@ -19,6 +19,17 @@ router.get('/top', getTopProducts);
 router.get('/category/:categoryId', getProductsByCategory);
 router.get('/:id', getProductById);
 
+// Categories route
+router.get('/api/categories', async (req, res) => {
+  try {
+    const Category = require('../models/Category');
+    const categories = await Category.find({}).select('name');
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Admin and Seller routes
 router.post('/', protect, upload.array('images', 5), createProduct);
 router.put('/:id', protect, updateProduct);
