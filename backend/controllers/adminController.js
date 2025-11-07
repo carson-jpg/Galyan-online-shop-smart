@@ -265,15 +265,20 @@ const getSellers = async (req, res) => {
     const page = Number(req.query.pageNumber) || 1;
     const status = req.query.status; // pending, approved, rejected
 
-    const matchConditions = {};
+    // Build match conditions for User model
+    const userMatchConditions = { role: 'seller' };
     if (status) {
-      matchConditions.sellerStatus = status;
+      userMatchConditions.sellerStatus = status;
     }
 
-    const count = await User.countDocuments({ role: 'seller', ...matchConditions });
-    const users = await User.find({ role: 'seller', ...matchConditions })
+    const count = await User.countDocuments(userMatchConditions);
+    const users = await User.find(userMatchConditions)
       .select('-password')
-      .populate('seller', 'businessName businessDescription contactPerson businessPhone businessEmail kraPin isActive')
+      .populate({
+        path: 'seller',
+        model: 'Seller',
+        select: 'businessName businessDescription contactPerson businessPhone businessEmail kraPin isActive'
+      })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort({ createdAt: -1 });
