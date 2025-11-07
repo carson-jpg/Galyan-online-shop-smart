@@ -106,6 +106,7 @@ const registerUser = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        sellerStatus: user.sellerStatus,
         token: generateToken(user._id),
       });
     } else {
@@ -137,6 +138,7 @@ const loginUser = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        sellerStatus: user.sellerStatus,
         token: generateToken(user._id),
       });
     } else {
@@ -161,6 +163,7 @@ const getUserProfile = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        sellerStatus: user.sellerStatus,
         profilePicture: user.profilePicture,
       });
     } else {
@@ -205,6 +208,7 @@ const updateUserProfile = async (req, res) => {
         email: updatedUser.email,
         phone: updatedUser.phone,
         role: updatedUser.role,
+        sellerStatus: updatedUser.sellerStatus,
         profilePicture: updatedUser.profilePicture,
       });
     } else {
