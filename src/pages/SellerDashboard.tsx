@@ -285,9 +285,14 @@ const SellerDashboard = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Seller Account Pending Approval</h1>
+          <h1 className="text-2xl font-bold mb-4">
+            {user.sellerStatus === 'rejected' ? 'Seller Application Rejected' : 'Seller Account Pending Approval'}
+          </h1>
           <p className="text-gray-600">
-            Your seller application is {user.sellerStatus}. Please wait for admin approval.
+            {user.sellerStatus === 'rejected'
+              ? 'Your seller application was rejected. Please contact support for more information.'
+              : `Your seller application is ${user.sellerStatus}. Please wait for admin approval.`
+            }
           </p>
         </div>
       </div>
