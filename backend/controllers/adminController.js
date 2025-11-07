@@ -265,26 +265,29 @@ const getSellers = async (req, res) => {
     const page = Number(req.query.pageNumber) || 1;
     const status = req.query.status; // pending, approved, rejected
 
-    // Build match conditions for User model
-    const userMatchConditions = { role: 'seller' };
+    // Build match conditions for Seller model
+    const sellerMatchConditions = {};
     if (status) {
-      userMatchConditions.sellerStatus = status;
+      // We need to match against the user's sellerStatus
+      // Since we're querying Seller, we need to use aggregation or join
+      const userIds = await User.find({ role: 'seller', sellerStatus: status }).select('_id');
+      sellerMatchConditions.user = { $in: userIds.map(u => u._id) };
     }
 
-    const count = await User.countDocuments(userMatchConditions);
-    const users = await User.find(userMatchConditions)
-      .select('-password')
+    const count = await Seller.countDocuments(sellerMatchConditions);
+    const sellers = await Seller.find(sellerMatchConditions)
       .populate({
-        path: 'seller',
-        model: 'Seller',
-        select: 'businessName businessDescription contactPerson businessPhone businessEmail kraPin isActive'
+        path: 'user',
+        model: 'User',
+        select: 'name email phone sellerStatus createdAt'
       })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json({
-      sellers: users,
+      sellers,
       page,
       pages: Math.ceil(count / pageSize),
       total: count,
