@@ -1,4 +1,4 @@
-import { ShoppingCart, Search, User, Menu, Heart, Package, Sun, Moon } from "lucide-react";
+import { ShoppingCart, Search, User, Menu, Heart, Package, Sun, Moon, MessageCircle, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -6,11 +6,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
+import { useUnreadCount } from "@/hooks/useChat";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useState, useEffect } from "react";
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { data: cart } = useCart();
+  const { data: unreadCount } = useUnreadCount();
+  const { unreadCount: notificationCount } = useNotifications();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
@@ -116,6 +120,28 @@ const Navbar = () => {
                 <Button variant="ghost" size="icon" className="hidden md:inline-flex">
                   <Heart className="h-5 w-5" />
                 </Button>
+                {isAuthenticated && (
+                  <>
+                    <Link to="/chat">
+                      <Button variant="ghost" size="icon" className="relative">
+                        <MessageCircle className="h-5 w-5" />
+                        {unreadCount && unreadCount > 0 && (
+                          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </Link>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Bell className="h-5 w-5" />
+                      {notificationCount > 0 && (
+                        <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500">
+                          {notificationCount > 99 ? '99+' : notificationCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </>
+                )}
                 {isAuthenticated ? (
                   <Link to="/cart">
                     <Button variant="ghost" size="icon" className="relative">
@@ -142,6 +168,27 @@ const Navbar = () => {
                 {user?.role === 'admin' ? (
                   <>
                     <span className="text-sm font-medium">Admin</span>
+                    <Button variant="ghost" onClick={logout}>
+                      Logout
+                    </Button>
+                  </>
+                ) : user?.role === 'seller' ? (
+                  <>
+                    <Link to="/seller-dashboard">
+                      <Button variant="ghost" size="sm">
+                        Seller Dashboard
+                      </Button>
+                    </Link>
+                    <Link to="/profile">
+                      <Button variant="ghost" size="icon" className="relative">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={user?.profilePicture} alt={user?.name} />
+                          <AvatarFallback className="text-xs">
+                            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </Link>
                     <Button variant="ghost" onClick={logout}>
                       Logout
                     </Button>
@@ -207,6 +254,9 @@ const Navbar = () => {
             </Link>
             <Link to="/products?category=groceries" className="hover:text-primary transition-colors">
               Groceries
+            </Link>
+            <Link to="/sell-on-galyan" className="hover:text-primary transition-colors">
+              Sell on Galyan
             </Link>
           </div>
         )}

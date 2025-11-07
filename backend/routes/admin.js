@@ -10,6 +10,9 @@ const {
   getAllOrders,
   getAllPayments,
   getDashboardStats,
+  getSellers,
+  updateSellerStatus,
+  getSellerDetails,
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/auth');
 
@@ -34,5 +37,9 @@ router.route('/payments').get(protect, admin, getAllPayments);
 
 // Dashboard stats
 router.route('/dashboard').get(protect, admin, getDashboardStats);
+
+// Seller management routes
+router.route('/sellers').get(protect, admin, getSellers);
+router.route('/sellers/:id').get(protect, admin, getSellerDetails).put(protect, admin, updateSellerStatus);
 
 module.exports = router;

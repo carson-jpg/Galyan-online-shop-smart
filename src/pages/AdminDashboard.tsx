@@ -96,6 +96,7 @@ const AdminDashboard = () => {
     flashPrice: '',
     quantity: '',
   });
+  const [sellerStatusFilter, setSellerStatusFilter] = useState('pending');
 
   // Fetch products
   const { data: products, isLoading: productsLoading } = useQuery({
@@ -152,6 +153,16 @@ const AdminDashboard = () => {
 
   // Fetch all flash sales for admin
   const { data: allFlashSalesData, isLoading: allFlashSalesLoading } = useAllFlashSales(1);
+
+  // Fetch sellers
+  const { data: sellersData, isLoading: sellersLoading, refetch: refetchSellers } = useQuery({
+    queryKey: ['adminSellers', sellerStatusFilter],
+    queryFn: async () => {
+      const response = await api.get(`/admin/sellers?status=${sellerStatusFilter}`);
+      return response.data;
+    },
+    enabled: !!user && user.role === 'admin',
+  });
 
   // Delete user mutation
   const deleteUserMutation = useMutation({
@@ -211,6 +222,21 @@ const AdminDashboard = () => {
     },
     onError: (error: any) => {
       alert(`Error updating order status: ${error.response?.data?.message || error.message}`);
+    },
+  });
+
+  // Update seller status mutation
+  const updateSellerStatusMutation = useMutation({
+    mutationFn: async ({ sellerId, status, commissionRate }: { sellerId: string; status: string; commissionRate?: number }) => {
+      const response = await api.put(`/admin/sellers/${sellerId}`, { status, commissionRate });
+      return response.data;
+    },
+    onSuccess: () => {
+      refetchSellers();
+      alert('Seller status updated successfully!');
+    },
+    onError: (error: any) => {
+      alert(`Error updating seller status: ${error.response?.data?.message || error.message}`);
     },
   });
 
@@ -493,6 +519,14 @@ const AdminDashboard = () => {
           >
             <Zap className="h-4 w-4 mr-2" />
             Flash Sales
+          </Button>
+          <Button
+            variant={activeTab === 'sellers' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('sellers')}
+            className="flex-1 min-w-0"
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Sellers
           </Button>
         </div>
 
@@ -1223,6 +1257,125 @@ const AdminDashboard = () => {
                       >
                         Delete
                       </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {activeTab === 'sellers' && (
+        <div className="space-y-6">
+          {/* Seller Status Filter */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Seller Management</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant={sellerStatusFilter === 'pending' ? 'default' : 'outline'}
+                  onClick={() => setSellerStatusFilter('pending')}
+                  size="sm"
+                >
+                  Pending ({sellersData?.total || 0})
+                </Button>
+                <Button
+                  variant={sellerStatusFilter === 'approved' ? 'default' : 'outline'}
+                  onClick={() => setSellerStatusFilter('approved')}
+                  size="sm"
+                >
+                  Approved
+                </Button>
+                <Button
+                  variant={sellerStatusFilter === 'rejected' ? 'default' : 'outline'}
+                  onClick={() => setSellerStatusFilter('rejected')}
+                  size="sm"
+                >
+                  Rejected
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {sellersLoading ? (
+                <div className="text-center py-4">Loading sellers...</div>
+              ) : sellersData && sellersData.sellers && sellersData.sellers.length === 0 ? (
+                <div className="text-center py-4">No sellers found</div>
+              ) : (
+                <div className="space-y-4">
+                  {sellersData?.sellers?.map((seller: any) => (
+                    <div key={seller._id} className="border rounded-lg p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-semibold">{seller.name}</h3>
+                            <Badge variant={
+                              seller.sellerStatus === 'approved' ? 'default' :
+                              seller.sellerStatus === 'pending' ? 'secondary' : 'destructive'
+                            }>
+                              {seller.sellerStatus}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div>
+                              <p><strong>Email:</strong> {seller.email}</p>
+                              <p><strong>Phone:</strong> {seller.phone}</p>
+                              <p><strong>Business:</strong> {seller.seller?.businessName}</p>
+                            </div>
+                            <div>
+                              <p><strong>Contact Person:</strong> {seller.seller?.contactPerson}</p>
+                              <p><strong>Business Phone:</strong> {seller.seller?.businessPhone}</p>
+                              <p><strong>KRA PIN:</strong> {seller.seller?.kraPin}</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-2">
+                            <strong>Applied:</strong> {new Date(seller.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2 ml-4">
+                          {seller.sellerStatus === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  const commissionRate = prompt('Enter commission rate (default 10%):', '10');
+                                  if (commissionRate !== null) {
+                                    updateSellerStatusMutation.mutate({
+                                      sellerId: seller._id,
+                                      status: 'approved',
+                                      commissionRate: parseFloat(commissionRate) || 10
+                                    });
+                                  }
+                                }}
+                                disabled={updateSellerStatusMutation.isPending}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  if (window.confirm(`Reject seller application for ${seller.name}?`)) {
+                                    updateSellerStatusMutation.mutate({
+                                      sellerId: seller._id,
+                                      status: 'rejected'
+                                    });
+                                  }
+                                }}
+                                disabled={updateSellerStatusMutation.isPending}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          {seller.sellerStatus === 'approved' && (
+                            <Badge variant="default">Active Seller</Badge>
+                          )}
+                          {seller.sellerStatus === 'rejected' && (
+                            <Badge variant="destructive">Rejected</Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

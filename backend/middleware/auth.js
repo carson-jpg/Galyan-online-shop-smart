@@ -31,4 +31,12 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const seller = (req, res, next) => {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'seller')) {
+    next();
+  } else {
+    res.status(401).json({ message: 'Not authorized as a seller' });
+  }
+};
+
+module.exports = { protect, admin, seller };

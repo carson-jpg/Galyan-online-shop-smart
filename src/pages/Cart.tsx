@@ -109,6 +109,20 @@ const Cart = () => {
                         />
                         <div className="flex-1">
                           <h3 className="font-medium mb-2">{item.product?.name || 'Unknown Product'}</h3>
+                          {(item.size || item.color) && (
+                            <div className="flex gap-2 mb-2">
+                              {item.size && (
+                                <span className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                                  Size: {item.size}
+                                </span>
+                              )}
+                              {item.color && (
+                                <span className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                                  Color: {item.color}
+                                </span>
+                              )}
+                            </div>
+                          )}
                           <p className="text-lg font-bold text-primary mb-4">
                             KSh {item.price.toLocaleString()}
                           </p>

@@ -57,9 +57,22 @@ const productSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  sizes: [{
+    type: String,
+    trim: true
+  }],
+  colors: [{
+    type: String,
+    trim: true
+  }],
   flashSale: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'FlashSale'
+  },
+  seller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Seller',
+    required: true
   }
 }, {
   timestamps: true

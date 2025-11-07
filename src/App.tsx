@@ -24,6 +24,10 @@ import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import SellerRegister from "./pages/SellerRegister";
+import SellerDashboard from "./pages/SellerDashboard";
+import SellerStore from "./pages/SellerStore";
+import Chat from "./pages/Chat";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -123,6 +127,10 @@ const AppContent = () => {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/seller-register" element={<SellerRegister />} />
+        <Route path="/seller-dashboard" element={<SellerDashboard />} />
+        <Route path="/seller/:sellerId" element={<SellerStore />} />
+        <Route path="/chat" element={<Chat />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

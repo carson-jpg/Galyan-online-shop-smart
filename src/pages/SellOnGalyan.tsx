@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'react-router-dom';
 
 const SellOnGalyan = () => {
   const { user } = useAuth();
@@ -10,7 +11,39 @@ const SellOnGalyan = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please login to access seller features</h1>
+          <h1 className="text-2xl font-bold mb-4">Become a Seller on Galyan</h1>
+          <p className="text-muted-foreground mb-6">Join our marketplace and start selling your products to millions of customers</p>
+          <div className="space-x-4">
+            <Link to="/seller-register">
+              <Button size="lg">Register as Seller</Button>
+            </Link>
+            <Link to="/login">
+              <Button variant="outline" size="lg">Login</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.role === 'seller') {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Seller Dashboard</h1>
+          <p className="text-muted-foreground mb-6">
+            {user.sellerStatus === 'approved'
+              ? 'Welcome to your seller dashboard!'
+              : user.sellerStatus === 'pending'
+              ? 'Your seller application is under review. Please wait for admin approval.'
+              : 'Your seller application was rejected. Please contact support for more information.'
+            }
+          </p>
+          {user.sellerStatus === 'approved' && (
+            <Link to="/seller-dashboard">
+              <Button size="lg">Go to Seller Dashboard</Button>
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -36,7 +69,9 @@ const SellOnGalyan = () => {
             <p className="text-muted-foreground mb-4">
               Join thousands of sellers on Galyan and reach millions of customers across Kenya.
             </p>
-            <Button className="w-full">Apply to Sell</Button>
+            <Link to="/seller-register">
+              <Button className="w-full">Apply to Sell</Button>
+            </Link>
           </CardContent>
         </Card>
 

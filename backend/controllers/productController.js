@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const Category = require('../models/Category');
+const Seller = require('../models/Seller');
 
 // Import logger
 const logger = require('../utils/logger');
@@ -39,9 +40,32 @@ const getProducts = async (req, res) => {
         }
       : {};
 
-    const count = await Product.countDocuments({ ...keyword, ...categoryFilter });
-    const products = await Product.find({ ...keyword, ...categoryFilter })
+    // Filter by seller if seller query parameter is provided
+    let sellerFilter = {};
+    if (req.query.seller === 'true' && req.user && req.user.role === 'seller') {
+      try {
+        const seller = await Seller.findOne({ user: req.user._id });
+        if (seller) {
+          sellerFilter = { seller: seller._id };
+        } else {
+          // If no seller profile found, return empty results
+          return res.json({
+            products: [],
+            page: 1,
+            pages: 0,
+            total: 0,
+          });
+        }
+      } catch (sellerError) {
+        console.error('Seller lookup error:', sellerError);
+        return res.status(500).json({ message: 'Error processing seller filter' });
+      }
+    }
+
+    const count = await Product.countDocuments({ ...keyword, ...categoryFilter, ...sellerFilter });
+    const products = await Product.find({ ...keyword, ...categoryFilter, ...sellerFilter })
       .populate('category', 'name')
+      .populate('seller', 'businessName')
       .populate({
         path: 'flashSale',
         match: { status: 'active', endTime: { $gt: new Date() } }
@@ -103,7 +127,7 @@ const getProductsByCategory = async (req, res) => {
 
 // @desc    Create a product
 // @route   POST /api/products
-// @access  Private/Admin
+// @access  Private/Admin or Private/Seller
 const createProduct = async (req, res) => {
   try {
     console.log('=== CREATE PRODUCT REQUEST ===');
@@ -250,6 +274,21 @@ const createProduct = async (req, res) => {
       tags: tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
     };
 
+    // Add seller information for sellers
+    if (req.user && req.user.role === 'seller') {
+      try {
+        const seller = await Seller.findOne({ user: req.user._id });
+        if (seller && seller.isActive) {
+          productData.seller = seller._id;
+        } else {
+          return res.status(403).json({ message: 'Seller account not approved or not found' });
+        }
+      } catch (sellerError) {
+        console.error('Seller lookup error:', sellerError);
+        return res.status(500).json({ message: 'Error processing seller information' });
+      }
+    }
+
     console.log('Product data to save:', JSON.stringify(productData, null, 2));
 
     const product = new Product(productData);
@@ -257,8 +296,9 @@ const createProduct = async (req, res) => {
     console.log('Saving product to database...');
     const createdProduct = await product.save();
     console.log('Product saved with ID:', createdProduct._id);
-    console.log('Populating category...');
+    console.log('Populating category and seller...');
     await createdProduct.populate('category', 'name');
+    await createdProduct.populate('seller', 'businessName');
 
     console.log('Product created successfully:', createdProduct._id);
     console.log('Final product data:', JSON.stringify({
@@ -315,7 +355,7 @@ const createProduct = async (req, res) => {
 
 // @desc    Update a product
 // @route   PUT /api/products/:id
-// @access  Private/Admin
+// @access  Private/Admin or Private/Seller
 const updateProduct = async (req, res) => {
   try {
     const {
@@ -334,6 +374,19 @@ const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
 
     if (product) {
+      // Check if user is authorized to update this product
+      if (req.user && req.user.role === 'seller') {
+        try {
+          const seller = await Seller.findOne({ user: req.user._id });
+          if (!seller || !seller.isActive || product.seller.toString() !== seller._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to update this product' });
+          }
+        } catch (sellerError) {
+          console.error('Seller authorization error:', sellerError);
+          return res.status(500).json({ message: 'Error checking seller authorization' });
+        }
+      }
+
       product.name = name || product.name;
       product.description = description || product.description;
       product.price = price || product.price;
@@ -347,6 +400,7 @@ const updateProduct = async (req, res) => {
 
       const updatedProduct = await product.save();
       await updatedProduct.populate('category', 'name');
+      await updatedProduct.populate('seller', 'businessName');
 
       res.json(updatedProduct);
     } else {
@@ -359,12 +413,25 @@ const updateProduct = async (req, res) => {
 
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
-// @access  Private/Admin
+// @access  Private/Admin or Private/Seller
 const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
     if (product) {
+      // Check if user is authorized to delete this product
+      if (req.user && req.user.role === 'seller') {
+        try {
+          const seller = await Seller.findOne({ user: req.user._id });
+          if (!seller || !seller.isActive || product.seller.toString() !== seller._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to delete this product' });
+          }
+        } catch (sellerError) {
+          console.error('Seller authorization error:', sellerError);
+          return res.status(500).json({ message: 'Error checking seller authorization' });
+        }
+      }
+
       await product.remove();
       res.json({ message: 'Product removed' });
     } else {

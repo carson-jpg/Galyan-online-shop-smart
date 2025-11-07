@@ -34,8 +34,13 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
+    enum: ['user', 'admin', 'seller'],
     default: 'user'
+  },
+  sellerStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: null // Only set for sellers
   },
   isActive: {
     type: Boolean,
@@ -43,6 +48,14 @@ const userSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
+    default: null
+  },
+  isOnline: {
+    type: Boolean,
+    default: false
+  },
+  lastSeen: {
+    type: Date,
     default: null
   }
 }, {

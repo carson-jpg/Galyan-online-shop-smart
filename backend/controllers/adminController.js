@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Seller = require('../models/Seller');
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
@@ -255,6 +256,91 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+// @desc    Get all sellers for approval
+// @route   GET /api/admin/sellers
+// @access  Private/Admin
+const getSellers = async (req, res) => {
+  try {
+    const pageSize = 10;
+    const page = Number(req.query.pageNumber) || 1;
+    const status = req.query.status; // pending, approved, rejected
+
+    const matchConditions = {};
+    if (status) {
+      matchConditions.sellerStatus = status;
+    }
+
+    const count = await User.countDocuments({ role: 'seller', ...matchConditions });
+    const users = await User.find({ role: 'seller', ...matchConditions })
+      .select('-password')
+      .populate('seller', 'businessName businessDescription contactPerson businessPhone businessEmail kraPin isActive')
+      .limit(pageSize)
+      .skip(pageSize * (page - 1))
+      .sort({ createdAt: -1 });
+
+    res.json({
+      sellers: users,
+      page,
+      pages: Math.ceil(count / pageSize),
+      total: count,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Approve or reject seller
+// @route   PUT /api/admin/sellers/:id
+// @access  Private/Admin
+const updateSellerStatus = async (req, res) => {
+  try {
+    const { status, commissionRate } = req.body; // status: 'approved' or 'rejected'
+
+    const user = await User.findById(req.params.id);
+
+    if (!user || user.role !== 'seller') {
+      return res.status(404).json({ message: 'Seller not found' });
+    }
+
+    user.sellerStatus = status;
+
+    if (status === 'approved') {
+      const seller = await Seller.findOne({ user: user._id });
+      if (seller) {
+        seller.isActive = true;
+        seller.commissionRate = commissionRate || seller.commissionRate;
+        await seller.save();
+      }
+    }
+
+    await user.save();
+
+    res.json({
+      message: `Seller ${status}`,
+      seller: user
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get seller details
+// @route   GET /api/admin/sellers/:id
+// @access  Private/Admin
+const getSellerDetails = async (req, res) => {
+  try {
+    const seller = await Seller.findOne({ user: req.params.id }).populate('user', '-password');
+
+    if (seller) {
+      res.json(seller);
+    } else {
+      res.status(404).json({ message: 'Seller not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getUsers,
   deleteUser,
@@ -266,4 +352,7 @@ module.exports = {
   getAllOrders,
   getAllPayments,
   getDashboardStats,
+  getSellers,
+  updateSellerStatus,
+  getSellerDetails,
 };

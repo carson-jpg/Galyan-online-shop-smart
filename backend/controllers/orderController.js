@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const Seller = require('../models/Seller');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -103,10 +104,34 @@ const getMyOrders = async (req, res) => {
 
 // @desc    Get all orders
 // @route   GET /api/orders
-// @access  Private/Admin
+// @access  Private/Admin or Private/Seller
 const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find({})
+    let query = {};
+
+    // If seller, filter orders to only show orders for their products
+    if (req.user.role === 'seller') {
+      try {
+        const seller = await Seller.findOne({ user: req.user._id });
+        if (!seller || !seller.isActive) {
+          return res.status(403).json({ message: 'Seller account not approved' });
+        }
+
+        // Get all products by this seller
+        const sellerProducts = await Product.find({ seller: seller._id }).select('_id');
+        const productIds = sellerProducts.map(p => p._id);
+
+        // Filter orders that contain seller's products
+        query = {
+          'orderItems.product': { $in: productIds }
+        };
+      } catch (sellerError) {
+        console.error('Seller lookup error:', sellerError);
+        return res.status(500).json({ message: 'Error processing seller orders' });
+      }
+    }
+
+    const orders = await Order.find(query)
       .populate('user', 'id name email')
       .sort({ createdAt: -1 });
     res.json(orders);
@@ -139,13 +164,37 @@ const updateOrderToDelivered = async (req, res) => {
 
 // @desc    Update order status
 // @route   PUT /api/orders/:id/status
-// @access  Private/Admin
+// @access  Private/Admin or Private/Seller
 const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const order = await Order.findById(req.params.id);
 
     if (order) {
+      // If seller, check if they own products in this order
+      if (req.user.role === 'seller') {
+        try {
+          const seller = await Seller.findOne({ user: req.user._id });
+          if (!seller || !seller.isActive) {
+            return res.status(403).json({ message: 'Seller account not approved' });
+          }
+
+          // Check if seller owns any products in this order
+          const sellerProducts = await Product.find({ seller: seller._id }).select('_id');
+          const productIds = sellerProducts.map(p => p._id);
+          const hasSellerProducts = order.orderItems.some(item =>
+            productIds.some(pid => pid.toString() === item.product.toString())
+          );
+
+          if (!hasSellerProducts) {
+            return res.status(403).json({ message: 'Not authorized to update this order' });
+          }
+        } catch (sellerError) {
+          console.error('Seller authorization error:', sellerError);
+          return res.status(500).json({ message: 'Error checking seller authorization' });
+        }
+      }
+
       order.status = status;
 
       if (status === 'Delivered') {
@@ -163,6 +212,51 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// @desc    Get seller stats
+// @route   GET /api/orders/seller-stats
+// @access  Private/Seller
+const getSellerStats = async (req, res) => {
+  try {
+    const seller = await Seller.findOne({ user: req.user._id });
+    if (!seller || !seller.isActive) {
+      return res.status(403).json({ message: 'Seller account not approved' });
+    }
+
+    // Get all products by this seller
+    const sellerProducts = await Product.find({ seller: seller._id }).select('_id');
+    const productIds = sellerProducts.map(p => p._id);
+
+    // Get orders containing seller's products
+    const orders = await Order.find({
+      'orderItems.product': { $in: productIds },
+      isPaid: true
+    }).populate('orderItems.product');
+
+    let totalSales = 0;
+    let totalEarnings = 0;
+    const totalOrders = orders.length;
+
+    orders.forEach(order => {
+      order.orderItems.forEach(item => {
+        if (productIds.some(pid => pid.toString() === item.product.toString())) {
+          const itemTotal = item.price * item.quantity;
+          totalSales += itemTotal;
+          totalEarnings += itemTotal * (seller.commissionRate / 100);
+        }
+      });
+    });
+
+    res.json({
+      totalProducts: sellerProducts.length,
+      totalOrders,
+      totalSales,
+      totalEarnings
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrderById,
@@ -170,4 +264,5 @@ module.exports = {
   getOrders,
   updateOrderToDelivered,
   updateOrderStatus,
+  getSellerStats,
 };

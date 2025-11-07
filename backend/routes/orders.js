@@ -6,16 +6,18 @@ const {
   getOrders,
   updateOrderToDelivered,
   updateOrderStatus,
+  getSellerStats,
 } = require('../controllers/orderController');
-const { protect, admin } = require('../middleware/auth');
+const { protect, admin, seller } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.route('/').post(protect, createOrder).get(protect, admin, getOrders);
+router.route('/').post(protect, createOrder).get(protect, getOrders);
 router.route('/myorders').get(protect, getMyOrders);
 router.route('/:id').get(protect, getOrderById);
 router.route('/:id/deliver').put(protect, admin, updateOrderToDelivered);
-router.route('/:id/status').put(protect, admin, updateOrderStatus);
+router.route('/:id/status').put(protect, updateOrderStatus);
+router.route('/seller-stats').get(protect, seller, getSellerStats);
 
 // Admin routes for order management
 router.get('/admin/orders', protect, admin, getOrders);

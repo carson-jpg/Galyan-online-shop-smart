@@ -13,7 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useProductReviews, useCreateReview, useUpdateReview, useDeleteReview, useMarkReviewHelpful, useReportReview } from "@/hooks/useReviews";
 import ReviewList from "@/components/ReviewList";
 import ReviewForm from "@/components/ReviewForm";
+import ChatWidget from "@/components/ChatWidget";
 import { Loader2, Star, ShoppingCart, Heart, Share2, ZoomIn, ZoomOut, RotateCcw, MessageSquarePlus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +42,8 @@ const ProductDetail = () => {
   const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [selectedColor, setSelectedColor] = useState<string>('');
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -82,12 +86,36 @@ const ProductDetail = () => {
       return;
     }
 
+    // Check if size and color are required and selected
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+      toast({
+        title: "Please select a size",
+        description: "You must select a size before adding to cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (product.colors && product.colors.length > 0 && !selectedColor) {
+      toast({
+        title: "Please select a color",
+        description: "You must select a color before adding to cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // If there's an active flash sale, use flash sale purchase instead
     if (isFlashSaleActive && !isFlashSaleSoldOut) {
       // Use flash sale purchase API
       // For now, we'll still use regular cart but could be enhanced to use flash sale API
       addToCartMutation.mutate(
-        { productId: product._id, quantity: 1 },
+        {
+          productId: product._id,
+          quantity: 1,
+          size: selectedSize,
+          color: selectedColor
+        },
         {
           onSuccess: () => {
             toast({
@@ -106,7 +134,12 @@ const ProductDetail = () => {
       );
     } else {
       addToCartMutation.mutate(
-        { productId: product._id, quantity: 1 },
+        {
+          productId: product._id,
+          quantity: 1,
+          size: selectedSize,
+          color: selectedColor
+        },
         {
           onSuccess: () => {
             toast({
@@ -238,6 +271,16 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+
+      {/* Chat Widget - Temporarily disabled until seller data is properly populated */}
+      {/* {product.seller && (
+        <ChatWidget
+          productId={product._id}
+          productName={product.name}
+          sellerName={product.seller.businessName}
+          sellerAvatar={product.seller.storeLogo}
+        />
+      )} */}
 
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
@@ -420,6 +463,49 @@ const ProductDetail = () => {
                   )}
                 </div>
               </div>
+
+              <Separator />
+
+              {/* Size and Color Selection */}
+              {(product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0) ? (
+                <div className="space-y-4">
+                  {product.sizes && product.sizes.length > 0 && (
+                    <div>
+                      <label className="font-semibold mb-2 block">Size</label>
+                      <Select value={selectedSize} onValueChange={setSelectedSize}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {product.sizes.map((size) => (
+                            <SelectItem key={size} value={size}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {product.colors && product.colors.length > 0 && (
+                    <div>
+                      <label className="font-semibold mb-2 block">Color</label>
+                      <Select value={selectedColor} onValueChange={setSelectedColor}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a color" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {product.colors.map((color) => (
+                            <SelectItem key={color} value={color}>
+                              {color}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              ) : null}
 
               <Separator />
 

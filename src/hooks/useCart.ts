@@ -13,6 +13,8 @@ interface CartItem {
   };
   quantity: number;
   price: number;
+  size?: string;
+  color?: string;
 }
 
 interface Cart {
@@ -41,7 +43,7 @@ export const useAddToCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { productId: string; quantity: number }) => {
+    mutationFn: async (data: { productId: string; quantity: number; size?: string; color?: string }) => {
       const response = await api.post('/cart', data);
       return response.data;
     },

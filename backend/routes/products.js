@@ -8,7 +8,7 @@ const {
   deleteProduct,
   getTopProducts,
 } = require('../controllers/productController');
-const { protect, admin } = require('../middleware/auth');
+const { protect, admin, seller } = require('../middleware/auth');
 const { upload } = require('../config/cloudinary');
 
 const router = express.Router();
@@ -19,9 +19,9 @@ router.get('/top', getTopProducts);
 router.get('/category/:categoryId', getProductsByCategory);
 router.get('/:id', getProductById);
 
-// Admin routes
-router.post('/', protect, admin, upload.array('images', 5), createProduct);
-router.put('/:id', protect, admin, updateProduct);
-router.delete('/:id', protect, admin, deleteProduct);
+// Admin and Seller routes
+router.post('/', protect, upload.array('images', 5), createProduct);
+router.put('/:id', protect, updateProduct);
+router.delete('/:id', protect, deleteProduct);
 
 module.exports = router;

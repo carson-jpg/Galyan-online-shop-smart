@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Seller = require('../models/Seller');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
@@ -289,6 +290,154 @@ const googleAuthSuccess = (req, res) => {
   }
 };
 
+// @desc    Register a seller
+// @route   POST /api/auth/register-seller
+// @access  Public
+const registerSeller = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const {
+    name,
+    email,
+    password,
+    phone,
+    businessName,
+    businessDescription,
+    contactPerson,
+    businessPhone,
+    businessEmail,
+    businessAddress,
+    kraPin
+  } = req.body;
+
+  try {
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      role: 'seller',
+      sellerStatus: 'pending'
+    });
+
+    const seller = await Seller.create({
+      user: user._id,
+      businessName,
+      businessDescription,
+      contactPerson,
+      businessPhone,
+      businessEmail,
+      businessAddress,
+      kraPin
+    });
+
+    if (user && seller) {
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        sellerStatus: user.sellerStatus,
+        token: generateToken(user._id),
+        message: 'Seller registration submitted. Please wait for admin approval.'
+      });
+    } else {
+      res.status(400).json({ message: 'Invalid seller data' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get seller profile
+// @route   GET /api/auth/seller-profile
+// @access  Private/Seller
+const getSellerProfile = async (req, res) => {
+  try {
+    const seller = await Seller.findOne({ user: req.user._id }).populate('user', '-password');
+
+    if (seller) {
+      res.json(seller);
+    } else {
+      res.status(404).json({ message: 'Seller profile not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update seller profile
+// @route   PUT /api/auth/seller-profile
+// @access  Private/Seller
+const updateSellerProfile = async (req, res) => {
+  try {
+    const seller = await Seller.findOne({ user: req.user._id });
+
+    if (seller) {
+      seller.businessName = req.body.businessName || seller.businessName;
+      seller.businessDescription = req.body.businessDescription || seller.businessDescription;
+      seller.contactPerson = req.body.contactPerson || seller.contactPerson;
+      seller.businessPhone = req.body.businessPhone || seller.businessPhone;
+      seller.businessEmail = req.body.businessEmail || seller.businessEmail;
+      seller.businessAddress = req.body.businessAddress || seller.businessAddress;
+      seller.storeDescription = req.body.storeDescription || seller.storeDescription;
+
+      // Handle file uploads
+      if (req.files) {
+        if (req.files.businessLicense) {
+          seller.businessLicense = req.files.businessLicense[0].path;
+        }
+        if (req.files.idDocument) {
+          seller.idDocument = req.files.idDocument[0].path;
+        }
+        if (req.files.storeLogo) {
+          seller.storeLogo = req.files.storeLogo[0].path;
+        }
+        if (req.files.storeBanner) {
+          seller.storeBanner = req.files.storeBanner[0].path;
+        }
+      }
+
+      const updatedSeller = await seller.save();
+      res.json(updatedSeller);
+    } else {
+      res.status(404).json({ message: 'Seller profile not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get seller profile by ID (public)
+// @route   GET /api/auth/seller-profile/:sellerId
+// @access  Public
+const getSellerProfileById = async (req, res) => {
+  try {
+    const seller = await Seller.findById(req.params.sellerId).populate('user', 'name email');
+
+    if (seller && seller.isActive) {
+      res.json(seller);
+    } else {
+      res.status(404).json({ message: 'Seller not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -299,4 +448,8 @@ module.exports = {
   googleAuth,
   googleAuthCallback,
   googleAuthSuccess,
+  registerSeller,
+  getSellerProfile,
+  updateSellerProfile,
+  getSellerProfileById,
 };
