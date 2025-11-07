@@ -658,7 +658,7 @@ const SellerDashboard = () => {
                     id="attributes"
                     value={productForm.attributes}
                     onChange={(e) => handleInputChange('attributes', e.target.value)}
-                    placeholder='e.g. [{"name": "Color", "values": ["Red", "Blue"]}, {"name": "Size", "values": ["S", "M", "L"]}]'
+                    placeholder='e.g. Color: Red, Blue; Size: S, M, L'
                     rows={4}
                   />
                   <p className="text-sm text-gray-500 mt-1">

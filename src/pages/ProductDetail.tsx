@@ -460,28 +460,25 @@ const ProductDetail = () => {
 
               {/* Dynamic Attributes Selection */}
               {product.attributes && product.attributes.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Product Options</h3>
+                <div className="space-y-6">
                   {product.attributes.map((attr) => (
-                    <div key={attr.name}>
-                      <label className="font-semibold mb-2 block">{attr.name}</label>
-                      <Select
-                        value={selectedAttributes[attr.name] || ''}
-                        onValueChange={(value) =>
-                          setSelectedAttributes(prev => ({ ...prev, [attr.name]: value }))
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder={`Select a ${attr.name}`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {attr.values.map((value) => (
-                            <SelectItem key={value} value={value}>
-                              {value}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div key={attr.name} className="space-y-3">
+                      <label className="font-semibold text-base">{attr.name}:</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {attr.values.map((value) => (
+                          <button
+                            key={value}
+                            onClick={() => setSelectedAttributes(prev => ({ ...prev, [attr.name]: value }))}
+                            className={`p-3 border rounded-lg text-left transition-colors ${
+                              selectedAttributes[attr.name] === value
+                                ? 'border-primary bg-primary/10 text-primary'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            {value}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>

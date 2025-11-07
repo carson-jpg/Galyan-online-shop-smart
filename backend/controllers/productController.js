@@ -309,7 +309,10 @@ const createProduct = async (req, res) => {
       }
     }
 
-    console.log('Product data to save:', JSON.stringify(productData, null, 2));
+    console.log('Product data to save:', {
+      ...productData,
+      attributes: productData.attributes ? JSON.stringify(productData.attributes, null, 2) : '[]'
+    });
 
     const product = new Product(productData);
 
