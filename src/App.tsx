@@ -101,14 +101,12 @@ const AppContent = () => {
 
   // If admin user, redirect immediately
   if (isAuthenticated && user?.role === 'admin' && window.location.pathname !== '/admin') {
-    window.location.href = '/admin';
-    return null;
+    return <Navigate to="/admin" replace />;
   }
 
   // If approved seller user, redirect immediately (but not if already on seller dashboard)
   if (isAuthenticated && user?.role === 'seller' && user?.sellerStatus === 'approved' && window.location.pathname !== '/seller-dashboard') {
-    window.location.href = '/seller-dashboard';
-    return null;
+    return <Navigate to="/seller-dashboard" replace />;
   }
 
   return (
