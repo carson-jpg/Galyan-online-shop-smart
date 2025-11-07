@@ -10,7 +10,9 @@ class SocketService {
       return this.socket;
     }
 
-    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://galyan-online-shop-smart.onrender.com' : 'http://localhost:5000');
+    const API_URL = (typeof window !== 'undefined' && window.location.hostname === 'galyan-online-shop-smart.vercel.app')
+      ? 'https://galyan-online-shop-smart.onrender.com'
+      : (import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
     this.socket = io(API_URL, {
       auth: {

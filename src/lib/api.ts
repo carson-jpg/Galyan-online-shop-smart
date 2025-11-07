@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : 'https://galyan-online-shop-smart.onrender.com');
+const API_BASE_URL = (typeof window !== 'undefined' && window.location.hostname === 'galyan-online-shop-smart.vercel.app')
+  ? 'https://galyan-online-shop-smart.onrender.com'
+  : (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : 'https://galyan-online-shop-smart.onrender.com'));
 
 const api = axios.create({
   baseURL: API_BASE_URL,
