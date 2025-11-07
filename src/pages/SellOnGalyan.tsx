@@ -40,9 +40,9 @@ const SellOnGalyan = () => {
             }
           </p>
           {user.sellerStatus === 'approved' && (
-            <Link to="/seller-dashboard">
-              <Button size="lg">Go to Seller Dashboard</Button>
-            </Link>
+            <Button size="lg" onClick={() => window.location.href = '/seller-dashboard'}>
+              Go to Seller Dashboard
+            </Button>
           )}
         </div>
       </div>
