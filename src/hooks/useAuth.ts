@@ -111,8 +111,8 @@ export const useAuth = () => {
       return response.data;
     },
     enabled: !!token,
-    refetchOnMount: true,
-    staleTime: 0,
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   return {
