@@ -462,6 +462,11 @@ const ProductDetail = () => {
                   {product.attributes.map((attr, attrIndex) => (
                     <div key={`${attr.name}-${attrIndex}`} className="space-y-3">
                       <label className="font-semibold text-base">{attr.name}:</label>
+                      {attr.name.toLowerCase() === 'size' && (
+                        <div className="text-sm text-muted-foreground mb-2">
+                          <a href="#" className="text-primary hover:underline">Size Guide</a>
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-2">
                         {attr.values && Array.isArray(attr.values) && attr.values.map((value, valueIndex) => (
                           <button
