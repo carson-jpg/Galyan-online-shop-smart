@@ -48,16 +48,16 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Protected Route component for user-only access (redirects admin to admin dashboard)
-const UserRoute = ({ children }: { children: React.ReactNode }) => {
+// Protected Route component for seller access
+const SellerRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role === 'admin') {
-    return <Navigate to="/admin" replace />;
+  if (user?.role !== 'seller') {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -127,9 +127,9 @@ const AppContent = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/seller-register" element={<SellerRegister />} />
         <Route path="/seller-dashboard" element={
-          <UserRoute>
+          <SellerRoute>
             <SellerDashboard />
-          </UserRoute>
+          </SellerRoute>
         } />
         <Route path="/seller/:sellerId" element={<SellerStore />} />
         <Route path="/chat" element={<Chat />} />
