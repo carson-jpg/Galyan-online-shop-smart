@@ -105,6 +105,12 @@ const AppContent = () => {
     return null;
   }
 
+  // If approved seller user, redirect immediately
+  if (isAuthenticated && user?.role === 'seller' && user?.sellerStatus === 'approved') {
+    window.location.href = '/seller-dashboard';
+    return null;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
@@ -124,11 +130,19 @@ const AppContent = () => {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/customer-services" element={<CustomerServices />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/seller-register" element={<SellerRegister />} />
-        <Route path="/seller-dashboard" element={<SellerDashboard />} />
+        <Route path="/seller-dashboard" element={
+          <UserRoute>
+            <SellerDashboard />
+          </UserRoute>
+        } />
         <Route path="/seller/:sellerId" element={<SellerStore />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
