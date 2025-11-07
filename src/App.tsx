@@ -99,10 +99,6 @@ const AppContent = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // If admin user, redirect immediately
-  if (isAuthenticated && user?.role === 'admin' && window.location.pathname !== '/admin') {
-    return <Navigate to="/admin" replace />;
-  }
 
   return (
     <BrowserRouter>
