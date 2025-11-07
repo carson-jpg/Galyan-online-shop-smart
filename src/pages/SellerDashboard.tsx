@@ -336,7 +336,7 @@ const SellerDashboard = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {sellerProfile?.businessName || user.name}! 👋
+            Welcome back, {sellerProfile?.businessName || user?.name}! 👋
           </h1>
           <p className="text-gray-600">Manage your products and track your sales performance.</p>
         </div>
@@ -465,7 +465,7 @@ const SellerDashboard = () => {
                   <div key={order._id} className="flex items-center justify-between py-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer" onClick={() => setActiveTab('orders')}>
                     <div>
                       <p className="font-medium">Order #{order._id.slice(-8)}</p>
-                      <p className="text-sm text-gray-600">{order.user.name} • {new Date(order.createdAt).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-600">{order.user?.name} • {new Date(order.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">KSh {order.totalPrice.toLocaleString()}</p>
@@ -737,7 +737,7 @@ const SellerDashboard = () => {
                       <div>
                         <h3 className="font-medium">Order #{order._id.slice(-8)}</h3>
                         <p className="text-sm text-gray-600">
-                          Customer: {order.user.name} | Phone: {order.user.phone}
+                          Customer: {order.user?.name} | Phone: {order.user?.phone}
                         </p>
                         <p className="text-sm text-gray-600">
                           Items: {order.orderItems.length} | Total: KSh {order.totalPrice.toLocaleString()}
@@ -801,7 +801,7 @@ const SellerDashboard = () => {
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-600 mb-2">Your public store URL:</p>
                     <code className="text-sm bg-white px-2 py-1 rounded border">
-                      {window.location.origin}/seller/{sellerProfile?.user?._id || user._id}
+                      {window.location.origin}/seller/{sellerProfile?.user?._id || user?._id}
                     </code>
                   </div>
                 </div>
@@ -823,19 +823,19 @@ const SellerDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label>Name</Label>
-                      <p className="text-sm text-gray-600 mt-1">{user.name}</p>
+                      <p className="text-sm text-gray-600 mt-1">{user?.name}</p>
                     </div>
                     <div>
                       <Label>Email</Label>
-                      <p className="text-sm text-gray-600 mt-1">{user.email}</p>
+                      <p className="text-sm text-gray-600 mt-1">{user?.email}</p>
                     </div>
                     <div>
                       <Label>Phone</Label>
-                      <p className="text-sm text-gray-600 mt-1">{user.phone}</p>
+                      <p className="text-sm text-gray-600 mt-1">{user?.phone}</p>
                     </div>
                     <div>
                       <Label>Role</Label>
-                      <Badge variant="default" className="mt-1">{user.role}</Badge>
+                      <Badge variant="default" className="mt-1">{user?.role}</Badge>
                     </div>
                   </div>
                 </div>

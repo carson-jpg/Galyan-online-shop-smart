@@ -545,7 +545,7 @@ const AdminDashboard = () => {
                   <div key={order._id} className="flex items-center justify-between py-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer" onClick={() => setActiveTab('orders')}>
                     <div>
                       <p className="font-medium">Order #{order._id.slice(-8)}</p>
-                      <p className="text-sm text-gray-600">{order.user.name} • {new Date(order.createdAt).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-600">{order.user?.name} • {new Date(order.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">KSh {order.totalPrice.toLocaleString()}</p>
@@ -816,7 +816,7 @@ const AdminDashboard = () => {
                     <div>
                       <h3 className="font-medium">Order #{order._id.slice(-8)}</h3>
                       <p className="text-sm text-gray-600">
-                        Customer: {order.user.name} | Phone: {order.user.phone}
+                        Customer: {order.user?.name} | Phone: {order.user?.phone}
                       </p>
                       <p className="text-sm text-gray-600">
                         Items: {order.orderItems.length} | Total: KSh {order.totalPrice.toLocaleString()}
@@ -862,7 +862,7 @@ const AdminDashboard = () => {
                     <div>
                       <h3 className="font-medium">Payment #{payment._id.slice(-8)}</h3>
                       <p className="text-sm text-gray-600">
-                        Customer: {payment.user.name} | Phone: {payment.user.phone}
+                        Customer: {payment.user?.name} | Phone: {payment.user?.phone}
                       </p>
                       <p className="text-sm text-gray-600">
                         Method: {payment.paymentMethod} | Amount: KSh {payment.totalPrice.toLocaleString()}
