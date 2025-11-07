@@ -457,35 +457,45 @@ const ProductDetail = () => {
               </div>
 
               {/* Dynamic Attributes Selection */}
-              {product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0 ? (
-                <div className="space-y-6">
-                  {product.attributes.map((attr, attrIndex) => (
-                    <div key={`${attr.name}-${attrIndex}`} className="space-y-3">
-                      <label className="font-semibold text-base">{attr.name}:</label>
-                      {attr.name.toLowerCase() === 'size' && (
-                        <div className="text-sm text-muted-foreground mb-2">
-                          <a href="#" className="text-primary hover:underline">Size Guide</a>
+              {(() => {
+                let attributes = product.attributes;
+                if (typeof attributes === 'string') {
+                  try {
+                    attributes = JSON.parse(attributes);
+                  } catch (e) {
+                    attributes = [];
+                  }
+                }
+                return attributes && Array.isArray(attributes) && attributes.length > 0 ? (
+                  <div className="space-y-6">
+                    {attributes.map((attr, attrIndex) => (
+                      <div key={`${attr.name}-${attrIndex}`} className="space-y-3">
+                        <label className="font-semibold text-base">{attr.name}:</label>
+                        {attr.name.toLowerCase() === 'size' && (
+                          <div className="text-sm text-muted-foreground mb-2">
+                            <a href="#" className="text-primary hover:underline">Size Guide</a>
+                          </div>
+                        )}
+                        <div className={attr.name.toLowerCase() === 'size' ? 'flex flex-col gap-1' : 'flex flex-wrap gap-2'}>
+                          {attr.values && Array.isArray(attr.values) && attr.values.map((value, valueIndex) => (
+                            <button
+                              key={`${value}-${valueIndex}`}
+                              onClick={() => setSelectedAttributes(prev => ({ ...prev, [attr.name]: value }))}
+                              className={`px-3 py-1 border rounded text-sm transition-colors ${
+                                selectedAttributes[attr.name] === value
+                                  ? 'border-primary bg-primary/10 text-primary font-medium'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              {value}
+                            </button>
+                          ))}
                         </div>
-                      )}
-                      <div className={attr.name.toLowerCase() === 'size' ? 'flex flex-col gap-1' : 'flex flex-wrap gap-2'}>
-                        {attr.values && Array.isArray(attr.values) && attr.values.map((value, valueIndex) => (
-                          <button
-                            key={`${value}-${valueIndex}`}
-                            onClick={() => setSelectedAttributes(prev => ({ ...prev, [attr.name]: value }))}
-                            className={`px-3 py-1 border rounded text-sm transition-colors ${
-                              selectedAttributes[attr.name] === value
-                                ? 'border-primary bg-primary/10 text-primary font-medium'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                          >
-                            {value}
-                          </button>
-                        ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
+                    ))}
+                  </div>
+                ) : null;
+              })()}
 
               {product.attributes && Array.isArray(product.attributes) && product.attributes.length > 0 && <Separator />}
 
