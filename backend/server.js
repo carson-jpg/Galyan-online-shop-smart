@@ -60,6 +60,11 @@ app.use('/api/mpesa', require('./routes/mpesa'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/chat', require('./routes/chat'));
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Schedule job to update expired flash sales every minute
