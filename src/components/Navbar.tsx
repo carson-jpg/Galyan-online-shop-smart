@@ -233,59 +233,63 @@ const Navbar = () => {
 
         {/* Navigation - Only show for non-admin users */}
         {user?.role !== 'admin' && (
-          <div className="hidden md:flex items-center gap-6 h-12 text-sm">
-            <Link to="/" className="hover:text-primary transition-colors font-medium">
+          <div className="hidden lg:flex items-center justify-center gap-4 h-12 text-sm overflow-x-auto">
+            <Link to="/" className="hover:text-primary transition-colors font-medium whitespace-nowrap px-2">
               Home
             </Link>
-            <Link to="/products?category=electronics" className="hover:text-primary transition-colors">
+            <div className="h-4 w-px bg-border"></div>
+            <Link to="/products?category=electronics" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Electronics
             </Link>
-            <Link to="/products?category=fashion" className="hover:text-primary transition-colors">
+            <Link to="/products?category=fashion" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Fashion
             </Link>
-            <Link to="/products?category=home" className="hover:text-primary transition-colors">
+            <Link to="/products?category=home" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Home & Living
             </Link>
-            <Link to="/products?category=beauty" className="hover:text-primary transition-colors">
+            <Link to="/products?category=beauty" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Beauty & Personal Care
             </Link>
-            <Link to="/products?category=supermarket" className="hover:text-primary transition-colors">
+            <Link to="/products?category=supermarket" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Supermarket / Groceries
             </Link>
-            <Link to="/products?category=appliances" className="hover:text-primary transition-colors">
+            <Link to="/products?category=appliances" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Appliances
             </Link>
-            <Link to="/products?category=computing" className="hover:text-primary transition-colors">
+            <Link to="/products?category=computing" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Computing & Office
             </Link>
-            <Link to="/products?category=sports" className="hover:text-primary transition-colors">
+            <Link to="/products?category=sports" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Sports & Outdoors
             </Link>
-            <Link to="/products?category=automotive" className="hover:text-primary transition-colors">
+            <Link to="/products?category=automotive" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Automotive
             </Link>
-            <Link to="/products?category=toys" className="hover:text-primary transition-colors">
+            <Link to="/products?category=toys" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Toys, Kids & Baby
             </Link>
-            <Link to="/products?category=health" className="hover:text-primary transition-colors">
+            <Link to="/products?category=health" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Health & Medical
             </Link>
-            <Link to="/products?category=books" className="hover:text-primary transition-colors">
+            <Link to="/products?category=books" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Books, Stationery & Art
             </Link>
-            <Link to="/products?category=garden" className="hover:text-primary transition-colors">
+            <Link to="/products?category=garden" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Garden & Tools
             </Link>
-            <Link to="/products?category=pet" className="hover:text-primary transition-colors">
+            <Link to="/products?category=pet" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Pet Supplies
             </Link>
-            <Link to="/products?category=deals" className="hover:text-primary transition-colors">
+            <Link to="/products?category=deals" className="hover:text-primary transition-colors whitespace-nowrap px-2">
               Deals & Promotions
             </Link>
             {isAuthenticated && (
-              <Link to="/sell-on-galyan" className="hover:text-primary transition-colors">
-                Sell on Galyan
-              </Link>
+              <>
+                <div className="h-4 w-px bg-border"></div>
+                <Link to="/sell-on-galyan" className="hover:text-primary transition-colors whitespace-nowrap px-2">
+                  Sell on Galyan
+                </Link>
+              </>
             )}
           </div>
         )}
