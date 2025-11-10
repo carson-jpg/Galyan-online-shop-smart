@@ -4,7 +4,7 @@ const Order = require('../models/Order');
 // Generate M-Pesa access token
 const generateAccessToken = async () => {
   const auth = Buffer.from(
-    `${process.env.DARAJA_CONSUMER_KEY}:${process.env.DARAJA_CONSUMER_SECRET}`
+    `${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`
   ).toString('base64');
 
   try {
@@ -18,6 +18,7 @@ const generateAccessToken = async () => {
     );
     return response.data.access_token;
   } catch (error) {
+    console.error('Access token generation error:', error.response?.data || error.message);
     throw new Error('Failed to generate access token');
   }
 };
@@ -47,19 +48,19 @@ const initiateSTKPush = async (req, res) => {
       .slice(0, -3);
 
     const password = Buffer.from(
-      `${process.env.DARAJA_SHORTCODE}${process.env.DARAJA_PASSKEY}${timestamp}`
+      `${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`
     ).toString('base64');
 
     const stkPushData = {
-      BusinessShortCode: process.env.DARAJA_SHORTCODE,
+      BusinessShortCode: process.env.MPESA_SHORTCODE,
       Password: password,
       Timestamp: timestamp,
       TransactionType: 'CustomerPayBillOnline',
       Amount: amount,
       PartyA: phoneNumber,
-      PartyB: process.env.DARAJA_SHORTCODE,
+      PartyB: process.env.MPESA_SHORTCODE,
       PhoneNumber: phoneNumber,
-      CallBackURL: process.env.DARAJA_CALLBACK_URL,
+      CallBackURL: process.env.MPESA_CALLBACK_URL,
       AccountReference: `Order-${orderId}`,
       TransactionDesc: 'Payment for order',
     };
@@ -86,9 +87,11 @@ const initiateSTKPush = async (req, res) => {
     });
   } catch (error) {
     console.error('M-Pesa STK Push Error:', error.response?.data || error.message);
+    console.error('Full error:', error);
     res.status(500).json({
       message: 'Failed to initiate payment',
       error: error.response?.data || error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
@@ -153,11 +156,11 @@ const checkPaymentStatus = async (req, res) => {
       .slice(0, -3);
 
     const password = Buffer.from(
-      `${process.env.DARAJA_SHORTCODE}${process.env.DARAJA_PASSKEY}${timestamp}`
+      `${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`
     ).toString('base64');
 
     const queryData = {
-      BusinessShortCode: process.env.DARAJA_SHORTCODE,
+      BusinessShortCode: process.env.MPESA_SHORTCODE,
       Password: password,
       Timestamp: timestamp,
       CheckoutRequestID: checkoutRequestId,
