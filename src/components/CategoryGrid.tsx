@@ -1,26 +1,27 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Smartphone, Shirt, Home, Sparkles, Dumbbell, ShoppingBasket, Cpu, Car, Baby, Heart, BookOpen, Wrench, PawPrint, Zap } from "lucide-react";
-
-const categories = [
-  { name: "Electronics", icon: Smartphone, slug: "electronics", color: "bg-blue-500" },
-  { name: "Fashion", icon: Shirt, slug: "fashion", color: "bg-pink-500" },
-  { name: "Home & Living", icon: Home, slug: "home", color: "bg-green-500" },
-  { name: "Beauty & Personal Care", icon: Sparkles, slug: "beauty", color: "bg-purple-500" },
-  { name: "Supermarket / Groceries", icon: ShoppingBasket, slug: "groceries", color: "bg-yellow-500" },
-  { name: "Appliances", icon: Home, slug: "appliances", color: "bg-indigo-500" },
-  { name: "Computing & Office", icon: Cpu, slug: "computing", color: "bg-gray-500" },
-  { name: "Sports & Outdoors", icon: Dumbbell, slug: "sports", color: "bg-orange-500" },
-  { name: "Automotive", icon: Car, slug: "automotive", color: "bg-red-500" },
-  { name: "Toys, Kids & Baby", icon: Baby, slug: "toys", color: "bg-cyan-500" },
-  { name: "Health & Medical", icon: Heart, slug: "health", color: "bg-rose-500" },
-  { name: "Books, Stationery & Art", icon: BookOpen, slug: "books", color: "bg-amber-500" },
-  { name: "Garden & Tools", icon: Wrench, slug: "garden", color: "bg-lime-500" },
-  { name: "Pet Supplies", icon: PawPrint, slug: "pet", color: "bg-emerald-500" },
-  { name: "Deals & Promotions", icon: Zap, slug: "deals", color: "bg-violet-500" },
-];
+import { useTopProducts } from "@/hooks/useProducts";
 
 const CategoryGrid = () => {
+  const { data: featuredProducts, isLoading } = useTopProducts();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Auto-rotate through featured product images every 2 seconds
+  useEffect(() => {
+    if (!featuredProducts || featuredProducts.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === featuredProducts.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [featuredProducts]);
+
+  const currentProduct = featuredProducts?.[currentImageIndex];
+
   return (
     <section className="py-12 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -32,24 +33,54 @@ const CategoryGrid = () => {
             Explore our wide range of products across different categories
           </p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <Link key={category.slug} to={`/products?category=${category.slug}`}>
-                <Card className="p-6 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 cursor-pointer group border-0 bg-card hover:bg-card/80">
-                  <div className="flex flex-col items-center text-center gap-4">
-                    <div className={`${category.color} p-5 rounded-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg`}>
-                      <Icon className="h-8 w-8 text-white" />
-                    </div>
-                    <span className="text-sm font-semibold group-hover:text-primary transition-colors">
-                      {category.name}
-                    </span>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
+
+        {/* Featured Product Image Carousel */}
+        {!isLoading && featuredProducts && featuredProducts.length > 0 && (
+          <div className="mb-12">
+            <div className="relative max-w-4xl mx-auto">
+              <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
+                <img
+                  src={currentProduct?.images?.[0] || "/placeholder.svg"}
+                  alt={currentProduct?.name || "Featured Product"}
+                  className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6">
+                  <h3 className="text-white text-2xl md:text-3xl font-bold mb-2">
+                    {currentProduct?.name}
+                  </h3>
+                  <p className="text-white/90 text-lg">
+                    KSh {currentProduct?.price?.toLocaleString()}
+                    {currentProduct?.originalPrice && (
+                      <span className="ml-2 text-red-400 line-through">
+                        KSh {currentProduct.originalPrice.toLocaleString()}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Image indicators */}
+              <div className="flex justify-center mt-4 gap-2">
+                {featuredProducts.slice(0, 8).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex
+                        ? 'bg-primary scale-125'
+                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Category Grid - Hidden as requested */}
+        <div className="hidden">
+          {/* Categories are now in the navbar */}
         </div>
       </div>
     </section>
