@@ -89,7 +89,7 @@ const getProducts = async (req, res) => {
           console.log('Using category + subcategories:', categoryIds.length, 'categories');
 
           // Debug: Check what products are found
-          const productCount = await Product.countDocuments({ ...keyword, ...categoryFilter, ...sellerFilter });
+          const productCount = await Product.countDocuments({ ...categoryFilter, ...sellerFilter });
           console.log('Products found for category:', productCount);
         }
       } catch (categoryError) {
