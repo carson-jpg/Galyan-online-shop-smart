@@ -190,7 +190,19 @@ const Cart = () => {
                     <Button
                       className="w-full"
                       size="lg"
-                      onClick={() => navigate('/checkout')}
+                      onClick={() => {
+                        console.log('Proceed to Checkout clicked');
+                        console.log('Cart items:', cartItems);
+                        console.log('Cart data:', cart);
+                        console.log('User:', user);
+                        if (cartItems.length > 0) {
+                          console.log('Navigating to checkout...');
+                          navigate('/checkout');
+                        } else {
+                          console.log('Cart is empty, not navigating');
+                        }
+                      }}
+                      disabled={!cartItems.length || isLoading}
                     >
                       Proceed to Checkout
                     </Button>

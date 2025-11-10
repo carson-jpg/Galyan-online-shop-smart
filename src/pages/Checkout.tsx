@@ -272,16 +272,25 @@ const Checkout = () => {
   };
 
   useEffect(() => {
+    console.log('Checkout useEffect triggered');
+    console.log('User:', user);
+    console.log('Flash sale data:', flashSaleData);
+    console.log('Cart:', cart);
+
     if (!user) {
+      console.log('No user, redirecting to login');
       navigate('/login');
       return;
     }
 
     // Check if cart is empty and no flash sale data
     if (!flashSaleData && (!cart || cart.items.length === 0)) {
+      console.log('Cart is empty and no flash sale, redirecting to cart');
       navigate('/cart');
       return;
     }
+
+    console.log('Checkout validation passed, staying on checkout page');
 
     // Initialize Google Places Autocomplete
     const initializeAutocomplete = async () => {
