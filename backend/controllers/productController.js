@@ -81,6 +81,10 @@ const getProducts = async (req, res) => {
           const categoryIds = [category._id, ...subcategories.map(cat => cat._id)];
           categoryFilter = { category: { $in: categoryIds } };
           console.log('Using category + subcategories:', categoryIds.length, 'categories');
+
+          // Debug: Check what products are found
+          const productCount = await Product.countDocuments({ ...keyword, ...categoryFilter, ...sellerFilter });
+          console.log('Products found for category:', productCount);
         }
       } catch (categoryError) {
         console.error('Category lookup error:', categoryError);
