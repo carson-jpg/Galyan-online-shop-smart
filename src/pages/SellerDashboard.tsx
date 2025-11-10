@@ -694,7 +694,7 @@ const SellerDashboard = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {categories?.map((category) => (
-                          <SelectItem key={category._id} value={category.name}>
+                          <SelectItem key={category._id} value={category.parent ? `${category.parent.name} > ${category.name}` : category.name}>
                             {category.parent ? `${category.parent.name} > ${category.name}` : category.name}
                           </SelectItem>
                         ))}

@@ -705,7 +705,16 @@ const importData = async () => {
 
     // Insert products with category references
     const productsWithCategoryIds = products.map(product => {
-      const categoryId = categoryMap[product.category];
+      let categoryId = categoryMap[product.category];
+      if (!categoryId) {
+        // Try to find by case-insensitive match
+        const categoryKey = Object.keys(categoryMap).find(key =>
+          key.toLowerCase() === product.category.toLowerCase()
+        );
+        if (categoryKey) {
+          categoryId = categoryMap[categoryKey];
+        }
+      }
       if (!categoryId) {
         console.error(`Category not found for product: ${product.name}, category: ${product.category}`);
         return null;
