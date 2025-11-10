@@ -9,8 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
+import { useUnreadCount } from '@/hooks/useChat';
 import api from '@/lib/api';
 import { Link, useNavigate } from 'react-router-dom';
+import { MessageCircle } from 'lucide-react';
 
 interface Order {
   _id: string;
@@ -40,12 +42,13 @@ interface CartItem {
 }
 
 const Profile = () => {
-   const { user, logout, setUser } = useAuth();
-   const [activeTab, setActiveTab] = useState('profile');
-   const [orderSubTab, setOrderSubTab] = useState('unpaid');
-   const queryClient = useQueryClient();
-   const fileInputRef = useRef<HTMLInputElement>(null);
-   const navigate = useNavigate();
+    const { user, logout, setUser } = useAuth();
+    const { data: unreadCount } = useUnreadCount();
+    const [activeTab, setActiveTab] = useState('profile');
+    const [orderSubTab, setOrderSubTab] = useState('unpaid');
+    const queryClient = useQueryClient();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
 
   // Profile update state
   const [profileData, setProfileData] = useState({
@@ -702,6 +705,18 @@ const Profile = () => {
                    </div>
                    <h3 className="font-semibold mb-2">Customer services</h3>
                    <p className="text-sm text-muted-foreground">Get help and support</p>
+                 </div>
+                 <div className="text-center p-6 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate('/chat')}>
+                   <div className="w-12 h-12 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center relative">
+                     <MessageCircle className="w-6 h-6 text-blue-600" />
+                     {unreadCount && unreadCount > 0 && (
+                       <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs font-bold animate-pulse">
+                         {unreadCount > 99 ? '99+' : unreadCount}
+                       </Badge>
+                     )}
+                   </div>
+                   <h3 className="font-semibold mb-2">Messages</h3>
+                   <p className="text-sm text-muted-foreground">Chat with sellers</p>
                  </div>
                  <div className="text-center p-6 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate('/settings')}>
                    <div className="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">

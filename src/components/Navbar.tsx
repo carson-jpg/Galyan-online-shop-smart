@@ -167,16 +167,6 @@ const Navbar = () => {
                 </Button>
                 {isAuthenticated && (
                   <>
-                    <Link to="/chat">
-                      <Button variant="ghost" size="icon" className="relative hover:bg-muted transition-colors">
-                        <MessageCircle className="h-5 w-5" />
-                        {unreadCount && unreadCount > 0 && (
-                          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs font-bold animate-pulse">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </Badge>
-                        )}
-                      </Button>
-                    </Link>
                     <Button variant="ghost" size="icon" className="relative hidden lg:inline-flex hover:bg-muted transition-colors">
                       <Bell className="h-5 w-5" />
                       {notificationCount > 0 && (

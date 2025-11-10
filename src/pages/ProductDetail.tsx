@@ -304,15 +304,15 @@ const ProductDetail = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Chat Widget - Temporarily disabled until seller data is properly populated */}
-      {/* {product.seller && (
+      {/* Chat Widget */}
+      {product.seller && (
         <ChatWidget
           productId={product._id}
           productName={product.name}
           sellerName={product.seller.businessName}
           sellerAvatar={product.seller.storeLogo}
         />
-      )} */}
+      )}
 
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
@@ -563,6 +563,31 @@ const ProductDetail = () => {
                   </div>
                 </div>
               )}
+
+              {/* Fulfillment Information */}
+              <div className="space-y-2">
+                <h3 className="font-semibold">Fulfillment & Shipping</h3>
+                <div className="grid grid-cols-1 gap-2 text-sm">
+                  <div>
+                    <span className="font-medium">Fulfillment Type: </span>
+                    <span className="text-muted-foreground">
+                      {product.fulfillmentType === 'galyan' ? 'Fulfilled by Galyan Shop' : 'Fulfilled by Seller'}
+                    </span>
+                  </div>
+                  {product.shippingInfo?.origin && (
+                    <div>
+                      <span className="font-medium">Shipping Origin: </span>
+                      <span className="text-muted-foreground">{product.shippingInfo.origin}</span>
+                    </div>
+                  )}
+                  {product.shippingInfo?.deliveryDays && (
+                    <div>
+                      <span className="font-medium">Delivery Time: </span>
+                      <span className="text-muted-foreground">{product.shippingInfo.deliveryDays} days</span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <Separator />
 

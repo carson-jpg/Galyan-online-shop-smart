@@ -30,6 +30,16 @@ interface Product {
     endTime: string;
     status: 'active' | 'expired' | 'sold_out';
   };
+  fulfillmentType?: 'galyan' | 'seller';
+  shippingInfo?: {
+    origin?: string;
+    deliveryDays?: number;
+  };
+  seller?: {
+    _id: string;
+    businessName: string;
+    storeLogo?: string;
+  };
   createdAt: string;
 }
 

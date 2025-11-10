@@ -672,9 +672,17 @@ const products = [
 
 const importData = async () => {
   try {
-    // Clear existing data
-    await Category.deleteMany();
-    await Product.deleteMany();
+    // Check if data already exists
+    const existingCategories = await Category.countDocuments();
+    const existingProducts = await Product.countDocuments();
+
+    if (existingCategories > 0 || existingProducts > 0) {
+      console.log('Database already contains data. Skipping seed import to preserve existing products.');
+      console.log(`Found ${existingCategories} categories and ${existingProducts} products.`);
+      return;
+    }
+
+    console.log('Database is empty. Proceeding with seed import...');
 
     // Insert categories in order: parents first, then children
     const parentCategories = categories.filter(cat => !cat.parent);
@@ -763,6 +771,21 @@ const importData = async () => {
 
 const destroyData = async () => {
   try {
+    const existingCategories = await Category.countDocuments();
+    const existingProducts = await Product.countDocuments();
+
+    console.log(`Found ${existingCategories} categories and ${existingProducts} products.`);
+
+    // Ask for confirmation before destroying data
+    if (existingCategories > 0 || existingProducts > 0) {
+      console.log('WARNING: This will delete all existing categories and products!');
+      console.log('Run with FORCE_DESTROY=true environment variable to confirm deletion.');
+      if (process.env.FORCE_DESTROY !== 'true') {
+        console.log('Data destruction cancelled. Set FORCE_DESTROY=true to proceed.');
+        process.exit(0);
+      }
+    }
+
     await Category.deleteMany();
     await Product.deleteMany();
 
