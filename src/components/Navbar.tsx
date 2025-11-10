@@ -9,6 +9,7 @@ import { useCart } from "@/hooks/useCart";
 import { useUnreadCount } from "@/hooks/useChat";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useState, useEffect, useRef } from "react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -17,6 +18,7 @@ const Navbar = () => {
   const { unreadCount: notificationCount } = useNotifications();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const marqueeRef = useRef<HTMLDivElement>(null);
 
@@ -137,7 +139,7 @@ const Navbar = () => {
             variant="ghost"
             size="icon"
             className="md:hidden mr-2"
-            onClick={() => {/* TODO: Open mobile search modal */}}
+            onClick={() => setIsMobileMenuOpen(true)}
           >
             <Search className="h-5 w-5" />
           </Button>
@@ -267,9 +269,145 @@ const Navbar = () => {
               </Link>
             )}
             {user?.role !== 'admin' && (
-              <Button variant="ghost" size="icon" className="md:hidden hover:bg-muted transition-colors">
-                <Menu className="h-5 w-5" />
-              </Button>
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden hover:bg-muted transition-colors">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-80">
+                  <SheetHeader>
+                    <SheetTitle className="text-left">Menu</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-4">
+                    {/* Mobile Search */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Search Products</label>
+                      <form onSubmit={(e) => { handleSearch(e); setIsMobileMenuOpen(false); }} className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search for products..."
+                          className="pl-10"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyPress={handleSearchKeyPress}
+                        />
+                      </form>
+                    </div>
+
+                    {/* Navigation Links */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Categories</label>
+                      <div className="grid gap-2">
+                        <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span className="font-medium">Home</span>
+                        </Link>
+                        <Link to="/products?category=electronics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Electronics</span>
+                        </Link>
+                        <Link to="/products?category=fashion" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Fashion</span>
+                        </Link>
+                        <Link to="/products?category=home" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Home & Living</span>
+                        </Link>
+                        <Link to="/products?category=beauty" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Beauty & Personal Care</span>
+                        </Link>
+                        <Link to="/products?category=supermarket" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Supermarket / Groceries</span>
+                        </Link>
+                        <Link to="/products?category=appliances" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Appliances</span>
+                        </Link>
+                        <Link to="/products?category=computing" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Computing & Office</span>
+                        </Link>
+                        <Link to="/products?category=sports" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Sports & Outdoors</span>
+                        </Link>
+                        <Link to="/products?category=automotive" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Automotive</span>
+                        </Link>
+                        <Link to="/products?category=toys" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Toys, Kids & Baby</span>
+                        </Link>
+                        <Link to="/products?category=health" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Health & Medical</span>
+                        </Link>
+                        <Link to="/products?category=books" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Books, Stationery & Art</span>
+                        </Link>
+                        <Link to="/products?category=garden" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Garden & Tools</span>
+                        </Link>
+                        <Link to="/products?category=pet" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Pet Supplies</span>
+                        </Link>
+                        <Link to="/products?category=deals" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                          <span>Deals & Promotions</span>
+                        </Link>
+                      </div>
+                    </div>
+
+                    {/* User Actions */}
+                    {isAuthenticated && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Account</label>
+                        <div className="grid gap-2">
+                          {user?.role === 'seller' && (
+                            <Link to="/seller-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                              <span>Seller Dashboard</span>
+                            </Link>
+                          )}
+                          <Link to="/orders" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                            <Package className="h-4 w-4" />
+                            <span>My Orders</span>
+                          </Link>
+                          <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                            <User className="h-4 w-4" />
+                            <span>Profile</span>
+                          </Link>
+                          {isAuthenticated && (
+                            <Link to="/sell-on-galyan" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors font-semibold">
+                              <span>Sell on Galyan</span>
+                            </Link>
+                          )}
+                          <Button
+                            variant="ghost"
+                            onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                            className="w-full justify-start p-3 h-auto"
+                          >
+                            Logout
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dark Mode Toggle */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Preferences</label>
+                      <Button
+                        variant="ghost"
+                        onClick={toggleDarkMode}
+                        className="w-full justify-start p-3 h-auto"
+                      >
+                        {isDarkMode ? (
+                          <>
+                            <Sun className="h-4 w-4 mr-3" />
+                            Light Mode
+                          </>
+                        ) : (
+                          <>
+                            <Moon className="h-4 w-4 mr-3" />
+                            Dark Mode
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             )}
           </div>
         </div>
