@@ -98,12 +98,6 @@ const getProducts = async (req, res) => {
       }
     }
 
-    const keyword = req.query.keyword
-      ? {
-          $text: { $search: req.query.keyword },
-        }
-      : {};
-
     // Filter by seller if seller query parameter is provided
     let sellerFilter = {};
     if (req.query.seller === 'true' && req.user && req.user.role === 'seller') {
@@ -125,6 +119,12 @@ const getProducts = async (req, res) => {
         return res.status(500).json({ message: 'Error processing seller filter' });
       }
     }
+
+    const keyword = req.query.keyword
+      ? {
+          $text: { $search: req.query.keyword },
+        }
+      : {};
 
     const count = await Product.countDocuments({ ...keyword, ...categoryFilter, ...sellerFilter });
     const products = await Product.find({ ...keyword, ...categoryFilter, ...sellerFilter })
