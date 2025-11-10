@@ -302,49 +302,49 @@ const Navbar = () => {
                         <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span className="font-medium">Home</span>
                         </Link>
-                        <Link to="/products?category=Electronics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Electronics")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Electronics</span>
                         </Link>
-                        <Link to="/products?category=Fashion" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Fashion")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Fashion</span>
                         </Link>
-                        <Link to="/products?category=Home & Living" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Home & Living")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Home & Living</span>
                         </Link>
-                        <Link to="/products?category=Beauty & Personal Care" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Beauty & Personal Care")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Beauty & Personal Care</span>
                         </Link>
-                        <Link to="/products?category=Supermarket / Groceries" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Supermarket / Groceries")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Supermarket / Groceries</span>
                         </Link>
-                        <Link to="/products?category=Appliances" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Appliances")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Appliances</span>
                         </Link>
-                        <Link to="/products?category=Computing & Office" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Computing & Office")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Computing & Office</span>
                         </Link>
-                        <Link to="/products?category=Sports & Outdoors" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Sports & Outdoors")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Sports & Outdoors</span>
                         </Link>
-                        <Link to="/products?category=Automotive" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Automotive")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Automotive</span>
                         </Link>
-                        <Link to="/products?category=Toys, Kids & Baby" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Toys, Kids & Baby")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Toys, Kids & Baby</span>
                         </Link>
-                        <Link to="/products?category=Health & Medical" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Health & Medical")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Health & Medical</span>
                         </Link>
-                        <Link to="/products?category=Books, Stationery & Art" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Books, Stationery & Art")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Books, Stationery & Art</span>
                         </Link>
-                        <Link to="/products?category=Garden & Tools" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Garden & Tools")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Garden & Tools</span>
                         </Link>
-                        <Link to="/products?category=Pet Supplies" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Pet Supplies")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Pet Supplies</span>
                         </Link>
-                        <Link to="/products?category=Deals & Promotions" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                        <Link to={`/products?category=${encodeURIComponent("Deals & Promotions")}`} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                           <span>Deals & Promotions</span>
                         </Link>
                       </div>
@@ -424,49 +424,49 @@ const Navbar = () => {
                 Home
               </Link>
               <div className="h-4 w-px bg-border/50"></div>
-              <Link to="/products?category=Electronics" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Electronics")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Electronics
               </Link>
-              <Link to="/products?category=Fashion" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Fashion")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Fashion
               </Link>
-              <Link to="/products?category=Home & Living" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Home & Living")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Home & Living
               </Link>
-              <Link to="/products?category=Beauty & Personal Care" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Beauty & Personal Care")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Beauty & Personal Care
               </Link>
-              <Link to="/products?category=Supermarket / Groceries" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Supermarket / Groceries")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Supermarket / Groceries
               </Link>
-              <Link to="/products?category=Appliances" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Appliances")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Appliances
               </Link>
-              <Link to="/products?category=Computing & Office" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Computing & Office")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Computing & Office
               </Link>
-              <Link to="/products?category=Sports & Outdoors" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Sports & Outdoors")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Sports & Outdoors
               </Link>
-              <Link to="/products?category=Automotive" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Automotive")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Automotive
               </Link>
-              <Link to="/products?category=Toys, Kids & Baby" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Toys, Kids & Baby")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Toys, Kids & Baby
               </Link>
-              <Link to="/products?category=Health & Medical" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Health & Medical")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Health & Medical
               </Link>
-              <Link to="/products?category=Books, Stationery & Art" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Books, Stationery & Art")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Books, Stationery & Art
               </Link>
-              <Link to="/products?category=Garden & Tools" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Garden & Tools")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Garden & Tools
               </Link>
-              <Link to="/products?category=Pet Supplies" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Pet Supplies")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Pet Supplies
               </Link>
-              <Link to="/products?category=Deals & Promotions" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
+              <Link to={`/products?category=${encodeURIComponent("Deals & Promotions")}`} className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Deals & Promotions
               </Link>
               {isAuthenticated && (

@@ -49,6 +49,12 @@ const getProducts = async (req, res) => {
         let category = await Category.findOne({ name: new RegExp(`^${categoryName}$`, 'i') });
 
         console.log('Found category:', category ? category.name : 'null');
+        console.log('Searching for category name:', categoryName);
+        console.log('Regex pattern:', `^${categoryName}$`);
+
+        // Debug: List all categories in database
+        const allCategories = await Category.find({}, 'name');
+        console.log('All categories in DB:', allCategories.map(c => c.name));
 
         if (!category) {
           // If not found, try to find parent category and get all its subcategories
