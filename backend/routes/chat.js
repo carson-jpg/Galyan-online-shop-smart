@@ -3,6 +3,7 @@ const {
   getUserChats,
   getOrCreateChat,
   getChatById,
+  createDirectChat,
   sendMessage,
   markMessagesAsRead,
   getUnreadCount,
@@ -22,6 +23,9 @@ router.get('/unread-count', getUnreadCount);
 
 // Get or create chat for a product
 router.get('/:productId', getOrCreateChat);
+
+// Create direct chat with seller
+router.post('/direct/:sellerId', createDirectChat);
 
 // Get specific chat by ID
 router.get('/conversation/:chatId', getChatById);

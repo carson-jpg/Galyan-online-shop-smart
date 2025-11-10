@@ -19,12 +19,12 @@ interface Message {
 
 interface Chat {
   _id: string;
-  product: {
+  product?: {
     _id: string;
     name: string;
     images: string[];
     price: number;
-  };
+  } | null;
   seller: {
     _id: string;
     businessName: string;

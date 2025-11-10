@@ -38,6 +38,52 @@ const getUserChats = async (req, res) => {
   }
 };
 
+// @desc    Create direct chat with seller (without product)
+// @route   POST /api/chat/direct/:sellerId
+// @access  Private
+const createDirectChat = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const customerId = req.user._id;
+
+    // Check if seller exists and is active
+    const seller = await Seller.findById(sellerId);
+    if (!seller || !seller.isActive) {
+      return res.status(404).json({ message: 'Seller not found or inactive' });
+    }
+
+    // Check if direct chat already exists
+    let chat = await Chat.findOne({
+      seller: sellerId,
+      customer: customerId,
+      product: null // Direct chats have no product
+    }).populate('seller', 'businessName storeLogo user')
+      .populate('customer', 'name profilePicture')
+      .populate('messages.sender', 'name profilePicture');
+
+    if (!chat) {
+      // Create new direct chat
+      chat = new Chat({
+        participants: [customerId, seller.user],
+        seller: sellerId,
+        customer: customerId,
+        product: null, // No product for direct chats
+        messages: []
+      });
+      await chat.save();
+
+      // Populate the new chat
+      chat = await Chat.findById(chat._id)
+        .populate('seller', 'businessName storeLogo user')
+        .populate('customer', 'name profilePicture');
+    }
+
+    res.json(chat);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get or create chat between customer and seller for a product
 // @route   GET /api/chat/:productId
 // @access  Private
@@ -255,6 +301,7 @@ module.exports = {
   getUserChats,
   getOrCreateChat,
   getChatById,
+  createDirectChat,
   sendMessage,
   markMessagesAsRead,
   getUnreadCount,

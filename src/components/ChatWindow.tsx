@@ -25,12 +25,12 @@ interface Message {
 
 interface Chat {
   _id: string;
-  product: {
+  product?: {
     _id: string;
     name: string;
     images: string[];
     price: number;
-  };
+  } | null;
   seller: {
     _id: string;
     businessName: string;
@@ -151,13 +151,19 @@ const ChatWindow = ({ chatId, onClose }: ChatWindowProps) => {
             </Avatar>
             <div>
               <CardTitle className="text-lg">{otherParticipant.name}</CardTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Package className="w-3 h-3" />
-                <span>{chat.product.name}</span>
-                <Badge variant="outline" className="text-xs">
-                  KSh {chat.product.price.toLocaleString()}
-                </Badge>
-              </div>
+              {chat.product ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Package className="w-3 h-3" />
+                  <span>{chat.product.name}</span>
+                  <Badge variant="outline" className="text-xs">
+                    KSh {chat.product.price.toLocaleString()}
+                  </Badge>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Direct conversation
+                </div>
+              )}
             </div>
           </div>
           {onClose && (
@@ -169,22 +175,24 @@ const ChatWindow = ({ chatId, onClose }: ChatWindowProps) => {
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0">
-        {/* Product Info Banner */}
-        <div className="bg-muted/50 p-3 border-b">
-          <div className="flex items-center gap-3">
-            <img
-              src={chat.product.images[0] || "/placeholder.svg"}
-              alt={chat.product.name}
-              className="w-12 h-12 object-cover rounded"
-            />
-            <div className="flex-1">
-              <h4 className="font-medium text-sm">{chat.product.name}</h4>
-              <p className="text-sm text-muted-foreground">
-                KSh {chat.product.price.toLocaleString()}
-              </p>
+        {/* Product Info Banner - Only show if there's a product */}
+        {chat.product && (
+          <div className="bg-muted/50 p-3 border-b">
+            <div className="flex items-center gap-3">
+              <img
+                src={chat.product.images[0] || "/placeholder.svg"}
+                alt={chat.product.name}
+                className="w-12 h-12 object-cover rounded"
+              />
+              <div className="flex-1">
+                <h4 className="font-medium text-sm">{chat.product.name}</h4>
+                <p className="text-sm text-muted-foreground">
+                  KSh {chat.product.price.toLocaleString()}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Messages */}
         <ScrollArea className="flex-1 p-4">

@@ -10,12 +10,12 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface Chat {
   _id: string;
-  product: {
+  product?: {
     _id: string;
     name: string;
     images: string[];
     price: number;
-  };
+  } | null;
   seller: {
     _id: string;
     businessName: string;
@@ -177,10 +177,21 @@ const ChatList = ({ onChatSelect, selectedChatId }: ChatListProps) => {
                         </div>
 
                         <div className="flex items-center gap-2 mb-1">
-                          <Package className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                          <p className="text-xs text-muted-foreground truncate">
-                            {chat.product.name}
-                          </p>
+                          {chat.product ? (
+                            <>
+                              <Package className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                              <p className="text-xs text-muted-foreground truncate">
+                                {chat.product.name}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <MessageCircle className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                              <p className="text-xs text-muted-foreground truncate">
+                                Direct conversation
+                              </p>
+                            </>
+                          )}
                         </div>
 
                         {chat.lastMessage && (
