@@ -34,13 +34,21 @@ const getProducts = async (req, res) => {
 
     if (req.query.category) {
       try {
+        let categoryName = req.query.category;
+
+        // Handle hierarchical category names like "Parent > Child"
+        if (categoryName.includes(' > ')) {
+          const parts = categoryName.split(' > ');
+          categoryName = parts[parts.length - 1]; // Get the last part (child category)
+        }
+
         // First try to find by exact name match (case insensitive)
-        let category = await Category.findOne({ name: new RegExp(`^${req.query.category}$`, 'i') });
+        let category = await Category.findOne({ name: new RegExp(`^${categoryName}$`, 'i') });
 
         if (!category) {
           // If not found, try to find parent category and get all its subcategories
           const parentCategory = await Category.findOne({
-            name: new RegExp(`^${req.query.category}$`, 'i'),
+            name: new RegExp(`^${categoryName}$`, 'i'),
             parent: null
           });
 
@@ -273,14 +281,22 @@ const createProduct = async (req, res) => {
     let categoryId = category;
     if (typeof category === 'string' && category.trim().length > 0) {
       try {
-        const categoryDoc = await Category.findOne({ name: new RegExp(`^${category.trim()}$`, 'i') });
+        let categoryName = category.trim();
+
+        // Handle hierarchical category names like "Parent > Child"
+        if (categoryName.includes(' > ')) {
+          const parts = categoryName.split(' > ');
+          categoryName = parts[parts.length - 1]; // Get the last part (child category)
+        }
+
+        const categoryDoc = await Category.findOne({ name: new RegExp(`^${categoryName}$`, 'i') });
         if (categoryDoc) {
           categoryId = categoryDoc._id;
           console.log('Found existing category:', categoryDoc.name);
         } else {
           // Create category if it doesn't exist
-          console.log('Creating new category:', category.trim());
-          const newCategory = new Category({ name: category.trim() });
+          console.log('Creating new category:', categoryName);
+          const newCategory = new Category({ name: categoryName });
           const savedCategory = await newCategory.save();
           categoryId = savedCategory._id;
           console.log('Created new category:', savedCategory.name);
