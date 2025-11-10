@@ -186,11 +186,13 @@ const Cart = () => {
                     </div>
                   </div>
                   {user ? (
-                    <Link to="/checkout">
-                      <Button className="w-full" size="lg">
-                        Proceed to Checkout
-                      </Button>
-                    </Link>
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      onClick={() => window.location.href = '/checkout'}
+                    >
+                      Proceed to Checkout
+                    </Button>
                   ) : (
                     <Link to="/login">
                       <Button className="w-full" size="lg">

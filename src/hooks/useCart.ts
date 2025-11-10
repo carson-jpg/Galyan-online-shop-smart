@@ -14,6 +14,8 @@ interface CartItem {
   quantity: number;
   price: number;
   attributes?: Record<string, string>;
+  size?: string;
+  color?: string;
 }
 
 interface Cart {
