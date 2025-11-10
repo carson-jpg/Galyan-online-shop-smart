@@ -23,7 +23,9 @@ router.get('/:id', getProductById);
 router.get('/api/categories', async (req, res) => {
   try {
     const Category = require('../models/Category');
-    const categories = await Category.find({}).select('name');
+    const categories = await Category.find({})
+      .populate('parent', 'name')
+      .sort({ createdAt: -1 });
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });
