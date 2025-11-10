@@ -98,24 +98,24 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-background border-b border-border">
+    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
         {/* Top Bar */}
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+            <div className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Galyan's
             </div>
           </Link>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-8">
+          {/* Search Bar - Hidden on small screens, shown on md and up */}
+          <div className="hidden md:flex flex-1 max-w-xl mx-4 lg:mx-8">
             <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search for products..."
-                className="pl-10 pr-12 h-10 w-full"
+                className="pl-10 pr-12 h-10 w-full rounded-full border-2 focus:border-primary transition-colors"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearchKeyPress}
@@ -124,7 +124,7 @@ const Navbar = () => {
                 type="submit"
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-2"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-3 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
                 disabled={!searchQuery.trim()}
               >
                 <Search className="h-4 w-4" />
@@ -132,14 +132,24 @@ const Navbar = () => {
             </form>
           </div>
 
+          {/* Mobile Search Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden mr-2"
+            onClick={() => {/* TODO: Open mobile search modal */}}
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             {/* Dark Mode Toggle */}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className="hidden md:inline-flex"
+              className="hidden lg:inline-flex hover:bg-muted transition-colors"
             >
               {isDarkMode ? (
                 <Sun className="h-5 w-5" />
@@ -150,25 +160,25 @@ const Navbar = () => {
 
             {user?.role !== 'admin' && (
               <>
-                <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+                <Button variant="ghost" size="icon" className="hidden lg:inline-flex hover:bg-muted transition-colors">
                   <Heart className="h-5 w-5" />
                 </Button>
                 {isAuthenticated && (
                   <>
                     <Link to="/chat">
-                      <Button variant="ghost" size="icon" className="relative">
+                      <Button variant="ghost" size="icon" className="relative hover:bg-muted transition-colors">
                         <MessageCircle className="h-5 w-5" />
                         {unreadCount && unreadCount > 0 && (
-                          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500">
+                          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs font-bold animate-pulse">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </Badge>
                         )}
                       </Button>
                     </Link>
-                    <Button variant="ghost" size="icon" className="relative">
+                    <Button variant="ghost" size="icon" className="relative hidden lg:inline-flex hover:bg-muted transition-colors">
                       <Bell className="h-5 w-5" />
                       {notificationCount > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500">
+                        <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs font-bold animate-pulse">
                           {notificationCount > 99 ? '99+' : notificationCount}
                         </Badge>
                       )}
@@ -177,18 +187,18 @@ const Navbar = () => {
                 )}
                 {isAuthenticated ? (
                   <Link to="/cart">
-                    <Button variant="ghost" size="icon" className="relative">
+                    <Button variant="ghost" size="icon" className="relative hover:bg-muted transition-colors">
                       <ShoppingCart className="h-5 w-5" />
-                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary">
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary text-primary-foreground text-xs font-bold">
                         {cartItemCount}
                       </Badge>
                     </Button>
                   </Link>
                 ) : (
                   <Link to="/login">
-                    <Button variant="ghost" size="icon" className="relative">
+                    <Button variant="ghost" size="icon" className="relative hover:bg-muted transition-colors">
                       <ShoppingCart className="h-5 w-5" />
-                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary">
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary text-primary-foreground text-xs font-bold">
                         0
                       </Badge>
                     </Button>
@@ -197,53 +207,53 @@ const Navbar = () => {
               </>
             )}
             {isAuthenticated ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 md:gap-2">
                 {user?.role === 'admin' ? (
                   <>
-                    <span className="text-sm font-medium">Admin</span>
-                    <Button variant="ghost" onClick={logout}>
+                    <span className="hidden sm:inline text-sm font-medium">Admin</span>
+                    <Button variant="ghost" size="sm" onClick={logout} className="text-sm">
                       Logout
                     </Button>
                   </>
                 ) : user?.role === 'seller' ? (
                   <>
                     <Link to="/seller-dashboard">
-                      <Button variant="ghost" size="sm">
-                        Seller Dashboard
+                      <Button variant="ghost" size="sm" className="hidden sm:inline text-sm">
+                        Dashboard
                       </Button>
                     </Link>
                     <Link to="/profile">
-                      <Button variant="ghost" size="icon" className="relative">
+                      <Button variant="ghost" size="icon" className="relative hover:bg-muted transition-colors">
                         <Avatar className="h-6 w-6">
                           <AvatarImage src={user?.profilePicture} alt={user?.name} />
-                          <AvatarFallback className="text-xs">
+                          <AvatarFallback className="text-xs font-semibold">
                             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
                       </Button>
                     </Link>
-                    <Button variant="ghost" onClick={logout}>
+                    <Button variant="ghost" size="sm" onClick={logout} className="text-sm">
                       Logout
                     </Button>
                   </>
                 ) : (
                   <>
                     <Link to="/orders">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" className="hidden sm:inline hover:bg-muted transition-colors">
                         <Package className="h-5 w-5" />
                       </Button>
                     </Link>
                     <Link to="/profile">
-                      <Button variant="ghost" size="icon" className="relative">
+                      <Button variant="ghost" size="icon" className="relative hover:bg-muted transition-colors">
                         <Avatar className="h-6 w-6">
                           <AvatarImage src={user?.profilePicture} alt={user?.name} />
-                          <AvatarFallback className="text-xs">
+                          <AvatarFallback className="text-xs font-semibold">
                             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
                       </Button>
                     </Link>
-                    <Button variant="ghost" onClick={logout}>
+                    <Button variant="ghost" size="sm" onClick={logout} className="text-sm">
                       Logout
                     </Button>
                   </>
@@ -251,13 +261,13 @@ const Navbar = () => {
               </div>
             ) : (
               <Link to="/login">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="hover:bg-muted transition-colors">
                   <User className="h-5 w-5" />
                 </Button>
               </Link>
             )}
             {user?.role !== 'admin' && (
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="md:hidden hover:bg-muted transition-colors">
                 <Menu className="h-5 w-5" />
               </Button>
             )}
@@ -266,65 +276,65 @@ const Navbar = () => {
 
         {/* Navigation - Only show for non-admin users */}
         {user?.role !== 'admin' && (
-          <div className="relative">
+          <div className="relative border-t border-border/50 bg-muted/20">
             <div
               ref={marqueeRef}
-              className="hidden md:flex items-center gap-3 h-12 text-sm overflow-x-auto scrollbar-hide"
+              className="hidden md:flex items-center justify-center gap-2 lg:gap-3 h-12 text-sm overflow-x-auto scrollbar-hide px-4"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              <Link to="/" className="hover:text-primary transition-colors font-medium whitespace-nowrap px-1">
+              <Link to="/" className="hover:text-primary transition-colors font-medium whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Home
               </Link>
-              <div className="h-4 w-px bg-border"></div>
-              <Link to="/products?category=electronics" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <div className="h-4 w-px bg-border/50"></div>
+              <Link to="/products?category=electronics" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Electronics
               </Link>
-              <Link to="/products?category=fashion" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=fashion" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Fashion
               </Link>
-              <Link to="/products?category=home" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=home" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Home & Living
               </Link>
-              <Link to="/products?category=beauty" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=beauty" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Beauty & Personal Care
               </Link>
-              <Link to="/products?category=supermarket" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=supermarket" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Supermarket / Groceries
               </Link>
-              <Link to="/products?category=appliances" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=appliances" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Appliances
               </Link>
-              <Link to="/products?category=computing" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=computing" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Computing & Office
               </Link>
-              <Link to="/products?category=sports" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=sports" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Sports & Outdoors
               </Link>
-              <Link to="/products?category=automotive" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=automotive" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Automotive
               </Link>
-              <Link to="/products?category=toys" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=toys" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Toys, Kids & Baby
               </Link>
-              <Link to="/products?category=health" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=health" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Health & Medical
               </Link>
-              <Link to="/products?category=books" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=books" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Books, Stationery & Art
               </Link>
-              <Link to="/products?category=garden" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=garden" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Garden & Tools
               </Link>
-              <Link to="/products?category=pet" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=pet" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Pet Supplies
               </Link>
-              <Link to="/products?category=deals" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+              <Link to="/products?category=deals" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5">
                 Deals & Promotions
               </Link>
               {isAuthenticated && (
                 <>
-                  <div className="h-4 w-px bg-border"></div>
-                  <Link to="/sell-on-galyan" className="hover:text-primary transition-colors whitespace-nowrap px-1">
+                  <div className="h-4 w-px bg-border/50"></div>
+                  <Link to="/sell-on-galyan" className="hover:text-primary transition-colors whitespace-nowrap px-2 py-1 rounded-md hover:bg-primary/5 font-semibold">
                     Sell on Galyan
                   </Link>
                 </>
