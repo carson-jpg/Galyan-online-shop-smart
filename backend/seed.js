@@ -718,6 +718,7 @@ const importData = async () => {
       if (!categoryId) {
         console.error(`Category not found for product: ${product.name}, category: ${product.category}`);
         console.log('Available categories:', Object.keys(categoryMap));
+        console.log('Looking for category:', product.category);
         return null;
       }
       return {
