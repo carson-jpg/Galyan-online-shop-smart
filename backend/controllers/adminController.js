@@ -52,7 +52,9 @@ const deleteUser = async (req, res) => {
 // @access  Private/Admin
 const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find({}).sort({ createdAt: -1 });
+    const categories = await Category.find({})
+      .populate('parent', 'name')
+      .sort({ createdAt: -1 });
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -64,9 +66,9 @@ const getCategories = async (req, res) => {
 // @access  Private/Admin
 const createCategory = async (req, res) => {
   try {
-    const { name, description, image } = req.body;
+    const { name, description, image, parent } = req.body;
 
-    const categoryExists = await Category.findOne({ name });
+    const categoryExists = await Category.findOne({ name, parent: parent || null });
 
     if (categoryExists) {
       return res.status(400).json({ message: 'Category already exists' });
@@ -76,9 +78,11 @@ const createCategory = async (req, res) => {
       name,
       description,
       image,
+      parent: parent || null,
     });
 
     const createdCategory = await category.save();
+    await createdCategory.populate('parent', 'name');
     res.status(201).json(createdCategory);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -90,7 +94,7 @@ const createCategory = async (req, res) => {
 // @access  Private/Admin
 const updateCategory = async (req, res) => {
   try {
-    const { name, description, image, isActive } = req.body;
+    const { name, description, image, isActive, parent } = req.body;
 
     const category = await Category.findById(req.params.id);
 
@@ -99,8 +103,10 @@ const updateCategory = async (req, res) => {
       category.description = description || category.description;
       category.image = image || category.image;
       category.isActive = isActive !== undefined ? isActive : category.isActive;
+      category.parent = parent !== undefined ? parent : category.parent;
 
       const updatedCategory = await category.save();
+      await updatedCategory.populate('parent', 'name');
       res.json(updatedCategory);
     } else {
       res.status(404).json({ message: 'Category not found' });

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/api';
-import { Upload, X, Plus, Package, ShoppingCart, DollarSign, TrendingUp, BarChart3, Settings, Store } from 'lucide-react';
+import { Upload, X, Plus, Package, ShoppingCart, DollarSign, TrendingUp, BarChart3, Settings, Store, Zap } from 'lucide-react';
 
 // Helper functions for attribute parsing
 const parseAttributesString = (str: string) => {
@@ -50,6 +50,11 @@ interface Product {
     name: string;
     values: string[];
   }>;
+  fulfillmentType?: string;
+  shippingInfo?: {
+    origin?: string;
+    deliveryDays?: number;
+  };
 }
 
 interface Order {
@@ -84,6 +89,11 @@ const SellerDashboard = () => {
   const { user, logout } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [flashSaleForm, setFlashSaleForm] = useState({
+    productId: '',
+    flashPrice: '',
+    quantity: '',
+  });
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productForm, setProductForm] = useState({
@@ -96,6 +106,9 @@ const SellerDashboard = () => {
     brand: '',
     tags: '',
     attributes: '',
+    fulfillmentType: 'galyan',
+    shippingOrigin: '',
+    deliveryDays: '',
   });
 
   // Fetch seller profile
@@ -132,8 +145,8 @@ const SellerDashboard = () => {
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      const response = await api.get('/products/api/categories');
-      return response.data as { _id: string; name: string }[];
+      const response = await api.get('/admin/categories');
+      return response.data as { _id: string; name: string; parent?: { name: string } }[];
     },
     enabled: !!user && user?.role === 'seller',
   });
@@ -218,6 +231,22 @@ const SellerDashboard = () => {
     },
   });
 
+  // Create flash sale mutation
+  const createFlashSaleMutation = useMutation({
+    mutationFn: async (flashSaleData: { productId: string; flashPrice: number; quantity: number }) => {
+      const response = await api.post('/flash-sales/seller', flashSaleData);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sellerProducts'] });
+      setFlashSaleForm({ productId: '', flashPrice: '', quantity: '' });
+      alert('Flash sale created successfully!');
+    },
+    onError: (error: any) => {
+      alert(`Error creating flash sale: ${error.response?.data?.message || error.message}`);
+    },
+  });
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setSelectedImages(prev => [...prev, ...files].slice(0, 5)); // Max 5 images
@@ -242,6 +271,9 @@ const SellerDashboard = () => {
     // Parse attributes from "Color: Red, Blue; Size: S, M, L" format to JSON
     const attributes = productForm.attributes ? parseAttributesString(productForm.attributes) : [];
     formData.append('attributes', JSON.stringify(attributes));
+    formData.append('fulfillmentType', productForm.fulfillmentType);
+    formData.append('shippingOrigin', productForm.shippingOrigin);
+    formData.append('deliveryDays', productForm.deliveryDays);
 
     selectedImages.forEach((image, index) => {
       formData.append('images', image);
@@ -269,6 +301,9 @@ const SellerDashboard = () => {
       brand: '',
       tags: '',
       attributes: '',
+      fulfillmentType: 'galyan',
+      shippingOrigin: '',
+      deliveryDays: '',
     });
     setSelectedImages([]);
   };
@@ -285,6 +320,9 @@ const SellerDashboard = () => {
       brand: product.brand || '',
       tags: '', // TODO: Add tags from product if available
       attributes: product.attributes ? formatAttributesToString(product.attributes) : '',
+      fulfillmentType: product.fulfillmentType || 'galyan',
+      shippingOrigin: product.shippingInfo?.origin || '',
+      deliveryDays: product.shippingInfo?.deliveryDays?.toString() || '',
     });
     setActiveTab('add-product');
   };
@@ -300,6 +338,20 @@ const SellerDashboard = () => {
     if (newStatus && newStatus !== currentStatus) {
       updateOrderStatusMutation.mutate({ orderId, status: newStatus });
     }
+  };
+
+  const handleCreateFlashSale = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!flashSaleForm.productId || !flashSaleForm.flashPrice || !flashSaleForm.quantity) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    createFlashSaleMutation.mutate({
+      productId: flashSaleForm.productId,
+      flashPrice: parseFloat(flashSaleForm.flashPrice),
+      quantity: parseInt(flashSaleForm.quantity),
+    });
   };
 
   if (!user || user?.role !== 'seller') {
@@ -434,6 +486,14 @@ const SellerDashboard = () => {
           >
             <Store className="h-4 w-4 mr-2" />
             Store
+          </Button>
+          <Button
+            variant={activeTab === 'flash-sales' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('flash-sales')}
+            className="flex-1 min-w-0"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Flash Sales
           </Button>
           <Button
             variant={activeTab === 'settings' ? 'default' : 'ghost'}
@@ -635,7 +695,7 @@ const SellerDashboard = () => {
                       <SelectContent>
                         {categories?.map((category) => (
                           <SelectItem key={category._id} value={category.name}>
-                            {category.name}
+                            {category.parent ? `${category.parent.name} > ${category.name}` : category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -648,6 +708,42 @@ const SellerDashboard = () => {
                       value={productForm.tags}
                       onChange={(e) => handleInputChange('tags', e.target.value)}
                       placeholder="e.g. electronics, smartphone, 5g"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="fulfillmentType">Fulfillment Type *</Label>
+                    <Select value={productForm.fulfillmentType} onValueChange={(value) => handleInputChange('fulfillmentType', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select fulfillment type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="galyan">Fulfilled by Galyan Shop</SelectItem>
+                        <SelectItem value="seller">Shipped by Seller</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="shippingOrigin">Shipping Origin</Label>
+                    <Input
+                      id="shippingOrigin"
+                      value={productForm.shippingOrigin}
+                      onChange={(e) => handleInputChange('shippingOrigin', e.target.value)}
+                      placeholder="e.g. China, USA, Kenya"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="deliveryDays">Delivery Days</Label>
+                    <Input
+                      id="deliveryDays"
+                      type="number"
+                      min="1"
+                      max="90"
+                      value={productForm.deliveryDays}
+                      onChange={(e) => handleInputChange('deliveryDays', e.target.value)}
+                      placeholder="e.g. 3-5 days"
                     />
                   </div>
                 </div>
@@ -815,6 +911,67 @@ const SellerDashboard = () => {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Flash Sales Tab */}
+        {activeTab === 'flash-sales' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Create Flash Sale</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateFlashSale} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="product">Select Product *</Label>
+                    <Select value={flashSaleForm.productId} onValueChange={(value) => setFlashSaleForm(prev => ({ ...prev, productId: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products?.filter(product => product.isActive).map((product) => (
+                          <SelectItem key={product._id} value={product._id}>
+                            {product.name} - KSh {product.price.toLocaleString()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="flashPrice">Flash Sale Price (KSh) *</Label>
+                    <Input
+                      id="flashPrice"
+                      type="number"
+                      step="0.01"
+                      value={flashSaleForm.flashPrice}
+                      onChange={(e) => setFlashSaleForm(prev => ({ ...prev, flashPrice: e.target.value }))}
+                      placeholder="Enter discounted price"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="quantity">Quantity *</Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      value={flashSaleForm.quantity}
+                      onChange={(e) => setFlashSaleForm(prev => ({ ...prev, quantity: e.target.value }))}
+                      placeholder="Available quantity"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={createFlashSaleMutation.isPending}
+                >
+                  {createFlashSaleMutation.isPending ? 'Creating Flash Sale...' : 'Create Flash Sale'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         )}

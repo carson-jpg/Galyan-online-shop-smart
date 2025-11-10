@@ -77,6 +77,22 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Seller',
     required: false
+  },
+  fulfillmentType: {
+    type: String,
+    enum: ['galyan', 'seller'],
+    default: 'galyan'
+  },
+  shippingInfo: {
+    origin: {
+      type: String,
+      trim: true
+    },
+    deliveryDays: {
+      type: Number,
+      min: 1,
+      max: 90
+    }
   }
 }, {
   timestamps: true

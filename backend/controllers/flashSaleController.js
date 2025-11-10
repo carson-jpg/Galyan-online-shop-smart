@@ -50,7 +50,7 @@ const getFlashSaleById = async (req, res) => {
 
 // @desc    Create a flash sale
 // @route   POST /api/flash-sales
-// @access  Private/Admin
+// @access  Private/Admin or Private/Seller
 const createFlashSale = async (req, res) => {
   try {
     const { productId, flashPrice, quantity } = req.body;
@@ -64,6 +64,14 @@ const createFlashSale = async (req, res) => {
 
     if (!product.isActive) {
       return res.status(400).json({ message: 'Product is not active' });
+    }
+
+    // Check if user is authorized to create flash sale for this product
+    if (req.user.role === 'seller') {
+      // Sellers can only create flash sales for their own products
+      if (!product.seller || product.seller.toString() !== req.user.sellerId?.toString()) {
+        return res.status(403).json({ message: 'Not authorized to create flash sale for this product' });
+      }
     }
 
     // Check if product already has an active flash sale
@@ -109,7 +117,7 @@ const createFlashSale = async (req, res) => {
 
 // @desc    Update flash sale
 // @route   PUT /api/flash-sales/:id
-// @access  Private/Admin
+// @access  Private/Admin or Private/Seller
 const updateFlashSale = async (req, res) => {
   try {
     const { flashPrice, quantity } = req.body;
@@ -118,6 +126,14 @@ const updateFlashSale = async (req, res) => {
 
     if (!flashSale) {
       return res.status(404).json({ message: 'Flash sale not found' });
+    }
+
+    // Check if user is authorized to update this flash sale
+    if (req.user.role === 'seller') {
+      // Sellers can only update flash sales they created
+      if (flashSale.createdBy.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Not authorized to update this flash sale' });
+      }
     }
 
     // Only allow updates if flash sale is still active
@@ -154,13 +170,21 @@ const updateFlashSale = async (req, res) => {
 
 // @desc    Delete flash sale
 // @route   DELETE /api/flash-sales/:id
-// @access  Private/Admin
+// @access  Private/Admin or Private/Seller
 const deleteFlashSale = async (req, res) => {
   try {
     const flashSale = await FlashSale.findById(req.params.id);
 
     if (!flashSale) {
       return res.status(404).json({ message: 'Flash sale not found' });
+    }
+
+    // Check if user is authorized to delete this flash sale
+    if (req.user.role === 'seller') {
+      // Sellers can only delete flash sales they created
+      if (flashSale.createdBy.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Not authorized to delete this flash sale' });
+      }
     }
 
     // Remove flash sale reference from product

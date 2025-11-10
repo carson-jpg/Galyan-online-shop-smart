@@ -101,6 +101,25 @@ interface User {
   createdAt: string;
 }
 
+interface Seller {
+  _id: string;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+    phone: string;
+    sellerStatus: string;
+    createdAt: string;
+  };
+  businessName: string;
+  contactPerson: string;
+  businessPhone: string;
+  kraPin: string;
+  commissionRate: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const queryClient = useQueryClient();
@@ -186,6 +205,16 @@ const AdminDashboard = () => {
     queryKey: ['adminSellers', sellerStatusFilter],
     queryFn: async () => {
       const response = await api.get(`/admin/sellers?status=${sellerStatusFilter}`);
+      return response.data;
+    },
+    enabled: !!user && user.role === 'admin',
+  });
+
+  // Fetch all sellers for management
+  const { data: allSellersData, isLoading: allSellersLoading } = useQuery({
+    queryKey: ['allSellers'],
+    queryFn: async () => {
+      const response = await api.get('/admin/sellers?status=all');
       return response.data;
     },
     enabled: !!user && user.role === 'admin',
@@ -559,6 +588,14 @@ const AdminDashboard = () => {
           >
             <Users className="h-4 w-4 mr-2" />
             Sellers
+          </Button>
+          <Button
+            variant={activeTab === 'manage-sellers' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('manage-sellers')}
+            className="flex-1 min-w-0"
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Manage Sellers
           </Button>
         </div>
 
@@ -1418,6 +1455,179 @@ const AdminDashboard = () => {
                             <Badge variant="default">Active Seller</Badge>
                           )}
                           {(seller.user?.sellerStatus || seller.sellerStatus) === 'rejected' && (
+                            <Badge variant="destructive">Rejected</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {activeTab === 'manage-sellers' && (
+        <div className="space-y-6">
+          {/* Seller Management Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-600">Total Sellers</p>
+                    <p className="text-2xl font-bold text-blue-900">{allSellersData?.total || 0}</p>
+                  </div>
+                  <Users className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-600">Active Sellers</p>
+                    <p className="text-2xl font-bold text-green-900">
+                      {allSellersData?.sellers?.filter((s: Seller) => s.user?.sellerStatus === 'approved').length || 0}
+                    </p>
+                  </div>
+                  <Users className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-yellow-600">Pending Approval</p>
+                    <p className="text-2xl font-bold text-yellow-900">
+                      {allSellersData?.sellers?.filter((s: Seller) => s.user?.sellerStatus === 'pending').length || 0}
+                    </p>
+                  </div>
+                  <Users className="h-8 w-8 text-yellow-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-red-600">Rejected</p>
+                    <p className="text-2xl font-bold text-red-900">
+                      {allSellersData?.sellers?.filter((s: Seller) => s.user?.sellerStatus === 'rejected').length || 0}
+                    </p>
+                  </div>
+                  <Users className="h-8 w-8 text-red-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* All Sellers Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle>All Sellers Management</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Manage all sellers, view their details, and control their status
+              </p>
+            </CardHeader>
+            <CardContent>
+              {allSellersLoading ? (
+                <div className="text-center py-4">Loading sellers...</div>
+              ) : allSellersData && allSellersData.sellers && allSellersData.sellers.length === 0 ? (
+                <div className="text-center py-4">No sellers found</div>
+              ) : (
+                <div className="space-y-4">
+                  {allSellersData?.sellers?.map((seller: Seller) => (
+                    <div key={seller._id} className="border rounded-lg p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-semibold">{seller.user?.name}</h3>
+                            <Badge variant={
+                              seller.user?.sellerStatus === 'approved' ? 'default' :
+                              seller.user?.sellerStatus === 'pending' ? 'secondary' : 'destructive'
+                            }>
+                              {seller.user?.sellerStatus}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                            <div>
+                              <p><strong>Email:</strong> {seller.user?.email}</p>
+                              <p><strong>Phone:</strong> {seller.user?.phone}</p>
+                              <p><strong>Business:</strong> {seller.businessName}</p>
+                              <p><strong>Commission Rate:</strong> {seller.commissionRate}%</p>
+                            </div>
+                            <div>
+                              <p><strong>Contact Person:</strong> {seller.contactPerson}</p>
+                              <p><strong>Business Phone:</strong> {seller.businessPhone}</p>
+                              <p><strong>KRA PIN:</strong> {seller.kraPin}</p>
+                              <p><strong>Joined:</strong> {new Date(seller.user?.createdAt).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2 ml-4">
+                          {seller.user?.sellerStatus === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  const commissionRate = prompt('Enter commission rate (default 10%):', '10');
+                                  if (commissionRate !== null) {
+                                    updateSellerStatusMutation.mutate({
+                                      sellerId: seller.user?._id,
+                                      status: 'approved',
+                                      commissionRate: parseFloat(commissionRate) || 10
+                                    });
+                                  }
+                                }}
+                                disabled={updateSellerStatusMutation.isPending}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  if (window.confirm(`Reject seller application for ${seller.user?.name}?`)) {
+                                    updateSellerStatusMutation.mutate({
+                                      sellerId: seller.user?._id,
+                                      status: 'rejected'
+                                    });
+                                  }
+                                }}
+                                disabled={updateSellerStatusMutation.isPending}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          {seller.user?.sellerStatus === 'approved' && (
+                            <div className="flex flex-col gap-2">
+                              <Badge variant="default">Active Seller</Badge>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const newRate = prompt('Update commission rate:', seller.commissionRate.toString());
+                                  if (newRate !== null && newRate !== seller.commissionRate.toString()) {
+                                    updateSellerStatusMutation.mutate({
+                                      sellerId: seller.user?._id,
+                                      status: 'approved',
+                                      commissionRate: parseFloat(newRate)
+                                    });
+                                  }
+                                }}
+                              >
+                                Update Commission
+                              </Button>
+                            </div>
+                          )}
+                          {seller.user?.sellerStatus === 'rejected' && (
                             <Badge variant="destructive">Rejected</Badge>
                           )}
                         </div>

@@ -1,14 +1,23 @@
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Smartphone, Shirt, Home, Sparkles, Dumbbell, ShoppingBasket } from "lucide-react";
+import { Smartphone, Shirt, Home, Sparkles, Dumbbell, ShoppingBasket, Cpu, Car, Baby, Heart, BookOpen, Wrench, PawPrint, Zap } from "lucide-react";
 
 const categories = [
   { name: "Electronics", icon: Smartphone, slug: "electronics", color: "bg-blue-500" },
   { name: "Fashion", icon: Shirt, slug: "fashion", color: "bg-pink-500" },
   { name: "Home & Living", icon: Home, slug: "home", color: "bg-green-500" },
-  { name: "Beauty", icon: Sparkles, slug: "beauty", color: "bg-purple-500" },
-  { name: "Sports", icon: Dumbbell, slug: "sports", color: "bg-orange-500" },
-  { name: "Groceries", icon: ShoppingBasket, slug: "groceries", color: "bg-yellow-500" },
+  { name: "Beauty & Personal Care", icon: Sparkles, slug: "beauty", color: "bg-purple-500" },
+  { name: "Supermarket / Groceries", icon: ShoppingBasket, slug: "groceries", color: "bg-yellow-500" },
+  { name: "Appliances", icon: Home, slug: "appliances", color: "bg-indigo-500" },
+  { name: "Computing & Office", icon: Cpu, slug: "computing", color: "bg-gray-500" },
+  { name: "Sports & Outdoors", icon: Dumbbell, slug: "sports", color: "bg-orange-500" },
+  { name: "Automotive", icon: Car, slug: "automotive", color: "bg-red-500" },
+  { name: "Toys, Kids & Baby", icon: Baby, slug: "toys", color: "bg-cyan-500" },
+  { name: "Health & Medical", icon: Heart, slug: "health", color: "bg-rose-500" },
+  { name: "Books, Stationery & Art", icon: BookOpen, slug: "books", color: "bg-amber-500" },
+  { name: "Garden & Tools", icon: Wrench, slug: "garden", color: "bg-lime-500" },
+  { name: "Pet Supplies", icon: PawPrint, slug: "pet", color: "bg-emerald-500" },
+  { name: "Deals & Promotions", icon: Zap, slug: "deals", color: "bg-violet-500" },
 ];
 
 const CategoryGrid = () => {
@@ -23,7 +32,7 @@ const CategoryGrid = () => {
             Explore our wide range of products across different categories
           </p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {categories.map((category) => {
             const Icon = category.icon;
             return (

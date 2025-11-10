@@ -4,7 +4,6 @@ const categorySchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true,
     trim: true
   },
   description: {
@@ -15,6 +14,11 @@ const categorySchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  parent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -22,5 +26,8 @@ const categorySchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Compound index to ensure unique names within the same parent level
+categorySchema.index({ name: 1, parent: 1 }, { unique: true });
 
 module.exports = mongoose.model('Category', categorySchema);

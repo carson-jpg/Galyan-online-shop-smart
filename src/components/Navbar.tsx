@@ -247,17 +247,46 @@ const Navbar = () => {
               Home & Living
             </Link>
             <Link to="/products?category=beauty" className="hover:text-primary transition-colors">
-              Beauty
+              Beauty & Personal Care
+            </Link>
+            <Link to="/products?category=supermarket" className="hover:text-primary transition-colors">
+              Supermarket / Groceries
+            </Link>
+            <Link to="/products?category=appliances" className="hover:text-primary transition-colors">
+              Appliances
+            </Link>
+            <Link to="/products?category=computing" className="hover:text-primary transition-colors">
+              Computing & Office
             </Link>
             <Link to="/products?category=sports" className="hover:text-primary transition-colors">
-              Sports
+              Sports & Outdoors
             </Link>
-            <Link to="/products?category=groceries" className="hover:text-primary transition-colors">
-              Groceries
+            <Link to="/products?category=automotive" className="hover:text-primary transition-colors">
+              Automotive
             </Link>
-            <Link to="/sell-on-galyan" className="hover:text-primary transition-colors">
-              Sell on Galyan
+            <Link to="/products?category=toys" className="hover:text-primary transition-colors">
+              Toys, Kids & Baby
             </Link>
+            <Link to="/products?category=health" className="hover:text-primary transition-colors">
+              Health & Medical
+            </Link>
+            <Link to="/products?category=books" className="hover:text-primary transition-colors">
+              Books, Stationery & Art
+            </Link>
+            <Link to="/products?category=garden" className="hover:text-primary transition-colors">
+              Garden & Tools
+            </Link>
+            <Link to="/products?category=pet" className="hover:text-primary transition-colors">
+              Pet Supplies
+            </Link>
+            <Link to="/products?category=deals" className="hover:text-primary transition-colors">
+              Deals & Promotions
+            </Link>
+            {isAuthenticated && (
+              <Link to="/sell-on-galyan" className="hover:text-primary transition-colors">
+                Sell on Galyan
+              </Link>
+            )}
           </div>
         )}
       </div>

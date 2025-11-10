@@ -34,17 +34,35 @@ const getProducts = async (req, res) => {
 
     if (req.query.category) {
       try {
-        const category = await Category.findOne({ name: new RegExp(`^${req.query.category}$`, 'i') });
-        if (category) {
-          categoryFilter = { category: category._id };
-        } else {
-          // If category not found, return empty results
-          return res.json({
-            products: [],
-            page: 1,
-            pages: 0,
-            total: 0,
+        // First try to find by exact name match
+        let category = await Category.findOne({ name: new RegExp(`^${req.query.category}$`, 'i') });
+
+        if (!category) {
+          // If not found, try to find parent category and get all its subcategories
+          const parentCategory = await Category.findOne({
+            name: new RegExp(`^${req.query.category}$`, 'i'),
+            parent: null
           });
+
+          if (parentCategory) {
+            // Get all subcategories of this parent
+            const subcategories = await Category.find({ parent: parentCategory._id });
+            const categoryIds = [parentCategory._id, ...subcategories.map(cat => cat._id)];
+            categoryFilter = { category: { $in: categoryIds } };
+          } else {
+            // If category not found, return empty results
+            return res.json({
+              products: [],
+              page: 1,
+              pages: 0,
+              total: 0,
+            });
+          }
+        } else {
+          // If exact category found, include it and its subcategories if it's a parent
+          const subcategories = await Category.find({ parent: category._id });
+          const categoryIds = [category._id, ...subcategories.map(cat => cat._id)];
+          categoryFilter = { category: { $in: categoryIds } };
         }
       } catch (categoryError) {
         console.error('Category lookup error:', categoryError);
@@ -211,6 +229,9 @@ const createProduct = async (req, res) => {
       brand,
       tags,
       attributes,
+      fulfillmentType,
+      shippingOrigin,
+      deliveryDays,
     } = req.body;
 
     // Validate required fields
@@ -292,6 +313,11 @@ const createProduct = async (req, res) => {
       brand: brand ? brand.trim() : undefined,
       tags: tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
       attributes: attributes ? parseAttributesString(attributes) : [],
+      fulfillmentType: fulfillmentType || 'galyan',
+      shippingInfo: {
+        origin: shippingOrigin ? shippingOrigin.trim() : undefined,
+        deliveryDays: deliveryDays ? Number(deliveryDays) : undefined,
+      },
     };
 
     // Add seller information for sellers
@@ -393,6 +419,9 @@ const updateProduct = async (req, res) => {
       tags,
       isActive,
       attributes,
+      fulfillmentType,
+      shippingOrigin,
+      deliveryDays,
     } = req.body;
 
     const product = await Product.findById(req.params.id);
@@ -422,6 +451,13 @@ const updateProduct = async (req, res) => {
       product.tags = tags || product.tags;
       product.isActive = isActive !== undefined ? isActive : product.isActive;
       product.attributes = attributes ? parseAttributesString(attributes) : product.attributes;
+      product.fulfillmentType = fulfillmentType || product.fulfillmentType;
+      if (shippingOrigin !== undefined || deliveryDays !== undefined) {
+        product.shippingInfo = {
+          origin: shippingOrigin !== undefined ? shippingOrigin : product.shippingInfo?.origin,
+          deliveryDays: deliveryDays !== undefined ? Number(deliveryDays) : product.shippingInfo?.deliveryDays,
+        };
+      }
 
       const updatedProduct = await product.save();
       await updatedProduct.populate('category', 'name');
