@@ -3,12 +3,13 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart, useUpdateCartItem, useRemoveFromCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const Cart = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: cart, isLoading } = useCart();
   const updateCartItemMutation = useUpdateCartItem();
@@ -189,7 +190,7 @@ const Cart = () => {
                     <Button
                       className="w-full"
                       size="lg"
-                      onClick={() => window.location.href = '/checkout'}
+                      onClick={() => navigate('/checkout')}
                     >
                       Proceed to Checkout
                     </Button>
