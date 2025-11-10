@@ -31,6 +31,7 @@ const getProducts = async (req, res) => {
     const pageSize = 12;
     const page = Number(req.query.pageNumber) || 1;
     let categoryFilter = {};
+    let sellerFilter = {};
 
     if (req.query.category) {
       try {
@@ -99,7 +100,6 @@ const getProducts = async (req, res) => {
     }
 
     // Filter by seller if seller query parameter is provided
-    let sellerFilter = {};
     if (req.query.seller === 'true' && req.user && req.user.role === 'seller') {
       try {
         const seller = await Seller.findOne({ user: req.user._id });
