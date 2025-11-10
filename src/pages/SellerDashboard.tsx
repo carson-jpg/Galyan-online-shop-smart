@@ -309,13 +309,17 @@ const SellerDashboard = () => {
   };
 
   const handleEditProduct = (product: Product) => {
+    // Find the category object to construct hierarchical name
+    const categoryObj = categories?.find(cat => cat.name === product.category.name);
+    const categoryName = categoryObj?.parent ? `${categoryObj.parent.name} > ${categoryObj.name}` : categoryObj?.name || product.category.name;
+
     setEditingProduct(product);
     setProductForm({
       name: product.name,
       description: product.description || '',
       price: product.price.toString(),
       originalPrice: product.originalPrice?.toString() || '',
-      category: product.category.name,
+      category: categoryName,
       stock: product.stock.toString(),
       brand: product.brand || '',
       tags: '', // TODO: Add tags from product if available

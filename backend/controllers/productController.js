@@ -36,14 +36,19 @@ const getProducts = async (req, res) => {
       try {
         let categoryName = req.query.category;
 
+        console.log('Filtering by category:', categoryName);
+
         // Handle hierarchical category names like "Parent > Child"
         if (categoryName.includes(' > ')) {
           const parts = categoryName.split(' > ');
           categoryName = parts[parts.length - 1]; // Get the last part (child category)
+          console.log('Parsed child category:', categoryName);
         }
 
         // First try to find by exact name match (case insensitive)
         let category = await Category.findOne({ name: new RegExp(`^${categoryName}$`, 'i') });
+
+        console.log('Found category:', category ? category.name : 'null');
 
         if (!category) {
           // If not found, try to find parent category and get all its subcategories
@@ -52,13 +57,17 @@ const getProducts = async (req, res) => {
             parent: null
           });
 
+          console.log('Found parent category:', parentCategory ? parentCategory.name : 'null');
+
           if (parentCategory) {
             // Get all subcategories of this parent
             const subcategories = await Category.find({ parent: parentCategory._id });
             const categoryIds = [parentCategory._id, ...subcategories.map(cat => cat._id)];
             categoryFilter = { category: { $in: categoryIds } };
+            console.log('Using parent + subcategories:', categoryIds.length, 'categories');
           } else {
             // If category not found, return empty results
+            console.log('No category found, returning empty results');
             return res.json({
               products: [],
               page: 1,
@@ -71,6 +80,7 @@ const getProducts = async (req, res) => {
           const subcategories = await Category.find({ parent: category._id });
           const categoryIds = [category._id, ...subcategories.map(cat => cat._id)];
           categoryFilter = { category: { $in: categoryIds } };
+          console.log('Using category + subcategories:', categoryIds.length, 'categories');
         }
       } catch (categoryError) {
         console.error('Category lookup error:', categoryError);
