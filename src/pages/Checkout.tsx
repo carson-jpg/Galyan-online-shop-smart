@@ -277,6 +277,12 @@ const Checkout = () => {
       return;
     }
 
+    // Check if cart is empty and no flash sale data
+    if (!flashSaleData && (!cart || cart.items.length === 0)) {
+      navigate('/cart');
+      return;
+    }
+
     // Initialize Google Places Autocomplete
     const initializeAutocomplete = async () => {
       if (!window.google || !addressInputRef.current) return;
@@ -338,6 +344,7 @@ const Checkout = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
+          <p className="text-muted-foreground mb-4">Add some items to your cart before proceeding to checkout.</p>
           <Button onClick={() => navigate('/products')}>Continue Shopping</Button>
         </div>
       </div>
