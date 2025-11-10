@@ -14,7 +14,7 @@ const {
   updateSellerStatus,
   getSellerDetails,
 } = require('../controllers/adminController');
-const { protect, admin } = require('../middleware/auth');
+const { protect, admin, seller } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ router.route('/users').get(protect, admin, getUsers);
 router.route('/users/:id').delete(protect, admin, deleteUser);
 
 // Category management routes
-router.route('/categories').get(protect, admin, getCategories).post(protect, admin, createCategory);
+router.route('/categories').get(protect, seller, getCategories).post(protect, admin, createCategory);
 router.route('/categories/:id').put(protect, admin, updateCategory).delete(protect, admin, deleteCategory);
 
 // Product management routes (admin view)
