@@ -34,7 +34,7 @@ const getProducts = async (req, res) => {
 
     if (req.query.category) {
       try {
-        // First try to find by exact name match
+        // First try to find by exact name match (case insensitive)
         let category = await Category.findOne({ name: new RegExp(`^${req.query.category}$`, 'i') });
 
         if (!category) {
