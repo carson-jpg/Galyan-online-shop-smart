@@ -272,19 +272,6 @@ const Checkout = () => {
   };
 
   useEffect(() => {
-    // Only redirect if we have definitive information that user/cart is not available
-    // Don't redirect immediately on first load while data is still loading
-    if (user === null) { // explicitly check for null, not undefined
-      navigate('/login');
-      return;
-    }
-
-    // Only check cart after it's loaded
-    if (cart !== undefined && !flashSaleData && (!cart || cart.items.length === 0)) {
-      navigate('/cart');
-      return;
-    }
-
     // Initialize Google Places Autocomplete
     const initializeAutocomplete = async () => {
       if (!window.google || !addressInputRef.current) return;
@@ -334,7 +321,7 @@ const Checkout = () => {
     };
 
     initializeAutocomplete();
-  }, [user, navigate]);
+  }, []);
 
   if (!user) {
     return null;
