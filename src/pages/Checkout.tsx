@@ -272,13 +272,15 @@ const Checkout = () => {
   };
 
   useEffect(() => {
-    if (!user) {
+    // Only redirect if we have definitive information that user/cart is not available
+    // Don't redirect immediately on first load while data is still loading
+    if (user === null) { // explicitly check for null, not undefined
       navigate('/login');
       return;
     }
 
-    // Check if cart is empty and no flash sale data
-    if (!flashSaleData && (!cart || cart.items.length === 0)) {
+    // Only check cart after it's loaded
+    if (cart !== undefined && !flashSaleData && (!cart || cart.items.length === 0)) {
       navigate('/cart');
       return;
     }
