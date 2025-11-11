@@ -478,11 +478,11 @@ const updateProduct = async (req, res) => {
 
       product.name = name || product.name;
       product.description = description || product.description;
-      product.price = price || product.price;
-      product.originalPrice = originalPrice || product.originalPrice;
+      product.price = price ? Number(price) : product.price;
+      product.originalPrice = originalPrice ? Number(originalPrice) : product.originalPrice;
       product.category = category || product.category;
       product.images = images || product.images;
-      product.stock = stock !== undefined ? stock : product.stock;
+      product.stock = stock !== undefined ? Number(stock) : product.stock;
       product.brand = brand || product.brand;
       product.tags = tags || product.tags;
       product.isActive = isActive !== undefined ? isActive : product.isActive;
