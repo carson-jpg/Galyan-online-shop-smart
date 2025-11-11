@@ -8,8 +8,18 @@ const generateAccessToken = async () => {
   ).toString('base64');
 
   try {
+    // Use production API for production credentials
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.MPESA_SHORTCODE !== '174379';
+    const baseUrl = isProduction
+      ? 'https://api.safaricom.co.ke'
+      : 'https://sandbox.safaricom.co.ke';
+
+    console.log('Using M-Pesa API:', baseUrl);
+    console.log('Consumer Key exists:', !!process.env.MPESA_CONSUMER_KEY);
+    console.log('Consumer Secret exists:', !!process.env.MPESA_CONSUMER_SECRET);
+
     const response = await axios.get(
-      'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
+      `${baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
       {
         headers: {
           Authorization: `Basic ${auth}`,
@@ -19,6 +29,8 @@ const generateAccessToken = async () => {
     return response.data.access_token;
   } catch (error) {
     console.error('Access token generation error:', error.response?.data || error.message);
+    console.error('Status code:', error.response?.status);
+    console.error('Response data:', error.response?.data);
     throw new Error('Failed to generate access token');
   }
 };
@@ -66,7 +78,7 @@ const initiateSTKPush = async (req, res) => {
     };
 
     const response = await axios.post(
-      'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest',
+      `${baseUrl}/mpesa/stkpush/v1/processrequest`,
       stkPushData,
       {
         headers: {
@@ -167,7 +179,7 @@ const checkPaymentStatus = async (req, res) => {
     };
 
     const response = await axios.post(
-      'https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query',
+      `${baseUrl}/mpesa/stkpushquery/v1/query`,
       queryData,
       {
         headers: {

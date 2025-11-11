@@ -289,8 +289,7 @@ const getSellers = async (req, res) => {
       })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
 
     res.json({
       sellers,
