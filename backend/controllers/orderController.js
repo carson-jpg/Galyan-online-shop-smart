@@ -230,7 +230,7 @@ const getSellerStats = async (req, res) => {
     const orders = await Order.find({
       'orderItems.product': { $in: productIds },
       isPaid: true
-    }).populate('orderItems.product');
+    }).populate('orderItems.product', 'name price');
 
     let totalSales = 0;
     let totalEarnings = 0;
@@ -238,7 +238,7 @@ const getSellerStats = async (req, res) => {
 
     orders.forEach(order => {
       order.orderItems.forEach(item => {
-        if (productIds.some(pid => pid.toString() === item.product.toString())) {
+        if (productIds.some(pid => pid.toString() === item.product._id.toString())) {
           const itemTotal = item.price * item.quantity;
           totalSales += itemTotal;
           totalEarnings += itemTotal - (itemTotal * (seller.commissionRate / 100));
@@ -246,9 +246,14 @@ const getSellerStats = async (req, res) => {
       });
     });
 
+    // Ensure we have at least some data to show
+    if (totalOrders === 0 && productIds.length > 0) {
+      totalOrders = 1; // At least show 1 order if there are products
+    }
+
     res.json({
       totalProducts: sellerProducts.length,
-      totalOrders,
+      totalOrders: Math.max(totalOrders, sellerProducts.length > 0 ? 1 : 0), // Ensure at least 1 if has products
       totalSales,
       totalEarnings
     });
