@@ -289,10 +289,27 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       refetchSellers();
+      queryClient.invalidateQueries({ queryKey: ['allSellers'] });
       alert('Seller status updated successfully!');
     },
     onError: (error: any) => {
       alert(`Error updating seller status: ${error.response?.data?.message || error.message}`);
+    },
+  });
+
+  // Toggle seller active status mutation
+  const toggleSellerActiveMutation = useMutation({
+    mutationFn: async (sellerId: string) => {
+      const response = await api.put(`/admin/sellers/${sellerId}/toggle-active`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      refetchSellers();
+      queryClient.invalidateQueries({ queryKey: ['allSellers'] });
+      alert(`Seller ${data.isActive ? 'activated' : 'deactivated'} successfully!`);
+    },
+    onError: (error: any) => {
+      alert(`Error toggling seller status: ${error.response?.data?.message || error.message}`);
     },
   });
 
@@ -1452,7 +1469,23 @@ const AdminDashboard = () => {
                             </>
                           )}
                           {(seller.user?.sellerStatus || seller.sellerStatus) === 'approved' && (
-                            <Badge variant="default">Active Seller</Badge>
+                            <div className="flex flex-col gap-2">
+                              <Badge variant={seller.isActive ? 'default' : 'secondary'}>
+                                {seller.isActive ? 'Active Seller' : 'Inactive Seller'}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant={seller.isActive ? 'destructive' : 'default'}
+                                onClick={() => {
+                                  if (window.confirm(`Are you sure you want to ${seller.isActive ? 'deactivate' : 'activate'} this seller?`)) {
+                                    toggleSellerActiveMutation.mutate(seller.user?._id || seller._id);
+                                  }
+                                }}
+                                disabled={toggleSellerActiveMutation.isPending}
+                              >
+                                {seller.isActive ? 'Deactivate' : 'Activate'}
+                              </Button>
+                            </div>
                           )}
                           {(seller.user?.sellerStatus || seller.sellerStatus) === 'rejected' && (
                             <Badge variant="destructive">Rejected</Badge>
@@ -1608,7 +1641,9 @@ const AdminDashboard = () => {
                           )}
                           {seller.user?.sellerStatus === 'approved' && (
                             <div className="flex flex-col gap-2">
-                              <Badge variant="default">Active Seller</Badge>
+                              <Badge variant={seller.isActive ? 'default' : 'secondary'}>
+                                {seller.isActive ? 'Active Seller' : 'Inactive Seller'}
+                              </Badge>
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -1624,6 +1659,18 @@ const AdminDashboard = () => {
                                 }}
                               >
                                 Update Commission
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={seller.isActive ? 'destructive' : 'default'}
+                                onClick={() => {
+                                  if (window.confirm(`Are you sure you want to ${seller.isActive ? 'deactivate' : 'activate'} this seller?`)) {
+                                    toggleSellerActiveMutation.mutate(seller.user?._id);
+                                  }
+                                }}
+                                disabled={toggleSellerActiveMutation.isPending}
+                              >
+                                {seller.isActive ? 'Deactivate' : 'Activate'}
                               </Button>
                             </div>
                           )}

@@ -12,6 +12,7 @@ const {
   getDashboardStats,
   getSellers,
   updateSellerStatus,
+  toggleSellerActiveStatus,
   getSellerDetails,
 } = require('../controllers/adminController');
 const { protect, admin, seller } = require('../middleware/auth');
@@ -41,5 +42,6 @@ router.route('/dashboard').get(protect, admin, getDashboardStats);
 // Seller management routes
 router.route('/sellers').get(protect, admin, getSellers);
 router.route('/sellers/:id').get(protect, admin, getSellerDetails).put(protect, admin, updateSellerStatus);
+router.route('/sellers/:id/toggle-active').put(protect, admin, toggleSellerActiveStatus);
 
 module.exports = router;

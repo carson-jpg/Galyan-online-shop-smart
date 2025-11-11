@@ -349,6 +349,35 @@ const updateSellerStatus = async (req, res) => {
   }
 };
 
+// @desc    Toggle seller active status
+// @route   PUT /api/admin/sellers/:id/toggle-active
+// @access  Private/Admin
+const toggleSellerActiveStatus = async (req, res) => {
+  try {
+    const seller = await Seller.findOne({ user: req.params.id });
+
+    if (!seller) {
+      return res.status(404).json({ message: 'Seller not found' });
+    }
+
+    // Only allow toggling if seller is approved
+    const user = await User.findById(req.params.id);
+    if (!user || user.sellerStatus !== 'approved') {
+      return res.status(400).json({ message: 'Can only toggle active status for approved sellers' });
+    }
+
+    seller.isActive = !seller.isActive;
+    await seller.save();
+
+    res.json({
+      message: `Seller ${seller.isActive ? 'activated' : 'deactivated'} successfully`,
+      isActive: seller.isActive
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get seller details
 // @route   GET /api/admin/sellers/:id
 // @access  Private/Admin
@@ -379,5 +408,6 @@ module.exports = {
   getDashboardStats,
   getSellers,
   updateSellerStatus,
+  toggleSellerActiveStatus,
   getSellerDetails,
 };
