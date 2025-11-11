@@ -12,6 +12,16 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select('-password');
+
+      // Add sellerId to req.user if user is a seller
+      if (req.user.role === 'seller') {
+        const Seller = require('../models/Seller');
+        const seller = await Seller.findOne({ user: req.user._id });
+        if (seller) {
+          req.user.sellerId = seller._id;
+        }
+      }
+
       next();
     } catch (error) {
       res.status(401).json({ message: 'Not authorized, token failed' });
