@@ -40,7 +40,7 @@ router.route('/payments').get(protect, admin, getAllPayments);
 router.route('/dashboard').get(protect, admin, getDashboardStats);
 
 // Seller management routes
-router.route('/sellers').get(protect, admin, getSellers);
+router.route('/sellers').get(protect, getSellers);
 router.route('/sellers/:id').get(protect, admin, getSellerDetails).put(protect, admin, updateSellerStatus);
 router.route('/sellers/:id/toggle-active').put(protect, admin, toggleSellerActiveStatus);
 
