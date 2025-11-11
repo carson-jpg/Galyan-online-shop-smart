@@ -534,6 +534,19 @@ const ProductDetail = () => {
                 <p className="text-muted-foreground">{parsedDescription}</p>
               </div>
 
+              {parsedAttributes && parsedAttributes.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Attributes</h3>
+                  <div className="space-y-1">
+                    {parsedAttributes.map((attr, index) => (
+                      <div key={index} className="text-muted-foreground">
+                        <strong>{attr.name}:</strong> {attr.values.join(', ')}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {product.brand && (
                 <div>
                   <span className="font-semibold">Brand: </span>
