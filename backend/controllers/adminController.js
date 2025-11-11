@@ -271,16 +271,24 @@ const getSellers = async (req, res) => {
     const page = Number(req.query.pageNumber) || 1;
     const status = req.query.status; // pending, approved, rejected
 
+    console.log('getSellers called with status:', status);
+
     // Build match conditions for Seller model
     const sellerMatchConditions = {};
-    if (status) {
+    const validStatuses = ['pending', 'approved', 'rejected'];
+    if (status && validStatuses.includes(status)) {
       // We need to match against the user's sellerStatus
       // Since we're querying Seller, we need to use aggregation or join
       const userIds = await User.find({ role: 'seller', sellerStatus: status }).select('_id');
       sellerMatchConditions.user = { $in: userIds.map(u => u._id) };
+      console.log('Filtering by status:', status, 'Found user IDs:', userIds.length);
+    } else {
+      console.log('No status filter or status=all, getting all sellers');
     }
 
     const count = await Seller.countDocuments(sellerMatchConditions);
+    console.log('Seller count:', count);
+
     const sellers = await Seller.find(sellerMatchConditions)
       .populate({
         path: 'user',
