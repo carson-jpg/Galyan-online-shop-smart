@@ -57,7 +57,7 @@ export const useUserChats = () => {
     queryKey: ['userChats', user?._id],
     queryFn: async () => {
       const response = await api.get('/chat');
-      return response.data as Chat[];
+      return (response.data as Chat[]).filter(chat => chat && chat._id);
     },
     enabled: !!user,
   });
