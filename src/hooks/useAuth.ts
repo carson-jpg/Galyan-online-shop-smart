@@ -78,6 +78,11 @@ export const useAuth = () => {
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(userData));
       queryClient.invalidateQueries();
+
+      // Force a page reload to ensure proper navigation
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     },
   });
 

@@ -2,6 +2,8 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const Seller = require('../models/Seller');
+const User = require('../models/User');
+const emailService = require('../utils/emailService');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -58,6 +60,15 @@ const createOrder = async (req, res) => {
       { user: req.user._id },
       { items: [], totalAmount: 0 }
     );
+
+    // Send order confirmation email
+    try {
+      const user = await User.findById(req.user._id);
+      await emailService.sendOrderConfirmationEmail(createdOrder, user);
+    } catch (emailError) {
+      console.error('Error sending order confirmation email:', emailError);
+      // Don't fail the order creation if email fails
+    }
 
     res.status(201).json(createdOrder);
   } catch (error) {
@@ -153,6 +164,16 @@ const updateOrderToDelivered = async (req, res) => {
       order.status = 'Delivered';
 
       const updatedOrder = await order.save();
+
+      // Send order status update email
+      try {
+        const user = await User.findById(order.user);
+        await emailService.sendOrderStatusUpdateEmail(updatedOrder, user, status);
+      } catch (emailError) {
+        console.error('Error sending order status update email:', emailError);
+        // Don't fail the status update if email fails
+      }
+
       res.json(updatedOrder);
     } else {
       res.status(404).json({ message: 'Order not found' });

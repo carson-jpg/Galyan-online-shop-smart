@@ -1,5 +1,7 @@
 const axios = require('axios');
 const Order = require('../models/Order');
+const User = require('../models/User');
+const emailService = require('../utils/emailService');
 
 // Generate M-Pesa access token
 const generateAccessToken = async () => {
@@ -142,6 +144,15 @@ const mpesaCallback = async (req, res) => {
           order.mpesaReceiptNumber = mpesaReceiptNumber;
           order.status = 'Processing';
           await order.save();
+
+          // Send payment confirmation email
+          try {
+            const user = await User.findById(order.user);
+            await emailService.sendPaymentConfirmationEmail(order, user);
+          } catch (emailError) {
+            console.error('Error sending payment confirmation email:', emailError);
+            // Don't fail the payment processing if email fails
+          }
         }
       }
     }
