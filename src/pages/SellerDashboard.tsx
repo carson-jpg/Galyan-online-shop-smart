@@ -268,9 +268,8 @@ const SellerDashboard = () => {
     formData.append('stock', productForm.stock);
     formData.append('brand', productForm.brand);
     formData.append('tags', productForm.tags);
-    // Parse attributes from "Color: Red, Blue; Size: S, M, L" format to JSON
-    const attributes = productForm.attributes ? parseAttributesString(productForm.attributes) : [];
-    formData.append('attributes', JSON.stringify(attributes));
+    // Send attributes in the expected string format "Color: Red, Blue; Size: S, M, L"
+    formData.append('attributes', productForm.attributes || '');
     formData.append('fulfillmentType', productForm.fulfillmentType);
     formData.append('shippingOrigin', productForm.shippingOrigin);
     formData.append('deliveryDays', productForm.deliveryDays);
