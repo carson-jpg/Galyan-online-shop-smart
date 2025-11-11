@@ -35,7 +35,7 @@ const chatSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
-    required: true
+    required: false
   },
   seller: {
     type: mongoose.Schema.Types.ObjectId,
@@ -77,7 +77,7 @@ const chatSchema = new mongoose.Schema({
 
 // Index for efficient queries
 chatSchema.index({ participants: 1, product: 1 });
-chatSchema.index({ seller: 1, customer: 1, product: 1 }, { unique: true });
+chatSchema.index({ seller: 1, customer: 1, product: 1 });
 
 // Update last message when new message is added
 chatSchema.pre('save', function(next) {
