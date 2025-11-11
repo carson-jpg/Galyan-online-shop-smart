@@ -22,7 +22,7 @@ const Chat = () => {
     queryKey: ['sellers'],
     queryFn: async () => {
       const response = await api.get('/admin/sellers');
-      return response.data.filter((seller: any) => seller.isActive);
+      return response.data?.sellers?.filter((seller: any) => seller.isActive) || [];
     },
     enabled: !!user,
   });
@@ -111,10 +111,10 @@ const Chat = () => {
                     <div className="space-y-2">
                       {filteredSellers.map((seller: any) => (
                         <Button
-                          key={seller._id}
+                          key={seller._id || seller.user?._id}
                           variant="ghost"
                           className="w-full justify-start h-auto p-3"
-                          onClick={() => handleStartChatWithSeller(seller._id)}
+                          onClick={() => handleStartChatWithSeller(seller._id || seller.user?._id)}
                         >
                           <div className="flex items-center gap-3 w-full">
                             <Avatar className="w-8 h-8">
