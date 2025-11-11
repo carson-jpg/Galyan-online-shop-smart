@@ -291,6 +291,9 @@ const getSellers = async (req, res) => {
       .skip(pageSize * (page - 1))
       .sort({ createdAt: -1 });
 
+    console.log('Sellers found:', sellers.length);
+    console.log('First seller:', sellers[0] ? { businessName: sellers[0].businessName, user: sellers[0].user } : 'No sellers');
+
     res.json({
       sellers,
       page,
@@ -298,6 +301,7 @@ const getSellers = async (req, res) => {
       total: count,
     });
   } catch (error) {
+    console.error('getSellers error:', error);
     res.status(500).json({ message: error.message });
   }
 };
