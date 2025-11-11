@@ -27,12 +27,17 @@ const getUserChats = async (req, res) => {
 
     const chats = await Chat.find(query)
       .populate('product', 'name images price')
-      .populate('seller', 'businessName storeLogo')
+      .populate('seller', 'businessName storeLogo user')
       .populate('customer', 'name profilePicture')
       .populate('lastMessage.sender', 'name')
       .sort({ updatedAt: -1 });
 
-    res.json(chats);
+    // Filter out chats with missing required data
+    const validChats = chats.filter(chat => {
+      return chat.seller && chat.customer && chat.seller.user;
+    });
+
+    res.json(validChats);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

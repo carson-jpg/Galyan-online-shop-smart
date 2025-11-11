@@ -197,7 +197,7 @@ const ChatWindow = ({ chatId, onClose }: ChatWindowProps) => {
         {/* Messages */}
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
-            {chat.messages.map((msg: Message) => {
+            {chat.messages.filter((msg: Message) => msg && msg.sender).map((msg: Message) => {
               const isOwnMessage = msg.sender._id === user?._id;
               return (
                 <div
