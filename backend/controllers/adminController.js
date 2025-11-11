@@ -303,7 +303,10 @@ const getSellers = async (req, res) => {
     console.log('First seller:', sellers[0] ? { businessName: sellers[0].businessName, user: sellers[0].user } : 'No sellers');
 
     res.json({
-      sellers,
+      sellers: sellers.map(seller => ({
+        ...seller.toObject(),
+        _id: seller._id
+      })),
       page,
       pages: Math.ceil(count / pageSize),
       total: count,
