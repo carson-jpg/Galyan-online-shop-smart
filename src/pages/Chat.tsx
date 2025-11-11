@@ -110,7 +110,7 @@ const Chat = () => {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {filteredSellers.map((seller: any) => (
+                      {filteredSellers.filter((seller: any) => seller && seller._id).map((seller: any) => (
                         <Button
                           key={seller._id}
                           variant="ghost"
