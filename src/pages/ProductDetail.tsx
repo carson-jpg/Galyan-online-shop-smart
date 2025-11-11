@@ -534,7 +534,7 @@ const ProductDetail = () => {
                 <p className="text-muted-foreground">{parsedDescription}</p>
               </div>
 
-              {parsedAttributes && parsedAttributes.length > 0 && (
+              {parsedAttributes && parsedAttributes.length > 0 && parsedAttributes.length <= 1 && (
                 <div>
                   <h3 className="font-semibold mb-2">Attributes</h3>
                   <div className="space-y-1">
