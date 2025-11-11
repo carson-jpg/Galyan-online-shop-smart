@@ -9,10 +9,7 @@ dotenv.config();
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(error);
@@ -156,6 +153,16 @@ const products = [
     rating: 4.5,
     numReviews: 120,
     tags: ["smartphone", "5G", "Android"],
+    attributes: [
+      {
+        name: "Storage",
+        values: ["128GB", "256GB", "512GB"]
+      },
+      {
+        name: "Color",
+        values: ["Black", "White", "Blue", "Purple"]
+      }
+    ],
   },
   {
     name: "Sony WH-1000XM5 Wireless Headphones",
@@ -169,6 +176,12 @@ const products = [
     rating: 4.8,
     numReviews: 85,
     tags: ["headphones", "wireless", "noise-canceling"],
+    attributes: [
+      {
+        name: "Color",
+        values: ["Black", "Silver", "Blue"]
+      }
+    ],
   },
   {
     name: "Apple MacBook Air M2",
@@ -182,6 +195,16 @@ const products = [
     rating: 4.9,
     numReviews: 200,
     tags: ["laptop", "MacBook", "M2"],
+    attributes: [
+      {
+        name: "Storage",
+        values: ["256GB", "512GB", "1TB"]
+      },
+      {
+        name: "Color",
+        values: ["Space Grey", "Silver", "Gold"]
+      }
+    ],
   },
   {
     name: "Canon EOS R6 Digital Camera",
@@ -195,6 +218,12 @@ const products = [
     rating: 4.7,
     numReviews: 45,
     tags: ["camera", "4K", "photography"],
+    attributes: [
+      {
+        name: "Kit",
+        values: ["Body Only", "With 24-70mm Lens", "With 24-105mm Lens"]
+      }
+    ],
   },
   {
     name: "LG 55\" 4K Smart TV",
@@ -208,6 +237,12 @@ const products = [
     rating: 4.6,
     numReviews: 78,
     tags: ["TV", "4K", "smart"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["43\"", "50\"", "55\"", "65\""]
+      }
+    ],
   },
   {
     name: "iPad Pro 11-inch M2",
@@ -221,6 +256,16 @@ const products = [
     rating: 4.8,
     numReviews: 95,
     tags: ["tablet", "iPad", "M2"],
+    attributes: [
+      {
+        name: "Storage",
+        values: ["128GB", "256GB", "512GB", "1TB"]
+      },
+      {
+        name: "Connectivity",
+        values: ["Wi-Fi", "Wi-Fi + Cellular"]
+      }
+    ],
   },
   {
     name: "JBL Flip 6 Bluetooth Speaker",
@@ -234,6 +279,12 @@ const products = [
     rating: 4.5,
     numReviews: 150,
     tags: ["speaker", "Bluetooth", "portable"],
+    attributes: [
+      {
+        name: "Color",
+        values: ["Black", "Blue", "Red", "Grey"]
+      }
+    ],
   },
   {
     name: "Apple Watch Series 9",
@@ -247,6 +298,16 @@ const products = [
     rating: 4.7,
     numReviews: 110,
     tags: ["smartwatch", "fitness", "health"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["41mm", "45mm"]
+      },
+      {
+        name: "Color",
+        values: ["Silver", "Space Black", "Gold", "Product Red"]
+      }
+    ],
   },
   // Fashion
   {
@@ -261,6 +322,16 @@ const products = [
     rating: 4.6,
     numReviews: 180,
     tags: ["shoes", "running", "Air Max"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["7", "8", "9", "10", "11", "12"]
+      },
+      {
+        name: "Color",
+        values: ["Black", "White", "Red", "Blue"]
+      }
+    ],
   },
   {
     name: "Adidas Ultraboost 22 Sneakers",
@@ -274,6 +345,16 @@ const products = [
     rating: 4.5,
     numReviews: 160,
     tags: ["sneakers", "running", "Boost"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["7", "8", "9", "10", "11", "12"]
+      },
+      {
+        name: "Color",
+        values: ["Black", "White", "Grey", "Blue"]
+      }
+    ],
   },
   {
     name: "Levi's 501 Original Fit Jeans",
@@ -287,6 +368,16 @@ const products = [
     rating: 4.4,
     numReviews: 220,
     tags: ["jeans", "denim", "classic"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["28", "30", "32", "34", "36", "38"]
+      },
+      {
+        name: "Color",
+        values: ["Blue", "Black", "Grey"]
+      }
+    ],
   },
   {
     name: "Calvin Klein Cotton T-Shirt Pack",
@@ -300,6 +391,16 @@ const products = [
     rating: 4.3,
     numReviews: 140,
     tags: ["t-shirt", "cotton", "pack"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["S", "M", "L", "XL", "XXL"]
+      },
+      {
+        name: "Color",
+        values: ["White", "Black", "Grey", "Navy"]
+      }
+    ],
   },
   {
     name: "Tommy Hilfiger Classic Polo",
@@ -313,6 +414,16 @@ const products = [
     rating: 4.6,
     numReviews: 130,
     tags: ["polo", "classic", "logo"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["S", "M", "L", "XL", "XXL"]
+      },
+      {
+        name: "Color",
+        values: ["White", "Blue", "Red", "Black"]
+      }
+    ],
   },
   {
     name: "Puma Training Tracksuit",
@@ -326,6 +437,16 @@ const products = [
     rating: 4.5,
     numReviews: 95,
     tags: ["tracksuit", "training", "comfortable"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["S", "M", "L", "XL", "XXL"]
+      },
+      {
+        name: "Color",
+        values: ["Black", "Grey", "Navy", "Red"]
+      }
+    ],
   },
   {
     name: "Ray-Ban Aviator Sunglasses",
@@ -339,6 +460,16 @@ const products = [
     rating: 4.7,
     numReviews: 170,
     tags: ["sunglasses", "aviator", "UV"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["Small", "Medium", "Large"]
+      },
+      {
+        name: "Color",
+        values: ["Gold", "Silver", "Black"]
+      }
+    ],
   },
   {
     name: "Zara Elegant Summer Dress",
@@ -352,6 +483,16 @@ const products = [
     rating: 4.4,
     numReviews: 85,
     tags: ["dress", "summer", "elegant"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["XS", "S", "M", "L", "XL"]
+      },
+      {
+        name: "Color",
+        values: ["Black", "White", "Blue", "Red"]
+      }
+    ],
   },
   // Beauty
   {
@@ -471,6 +612,16 @@ const products = [
     rating: 4.5,
     numReviews: 90,
     tags: ["bedding", "cotton", "queen"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["Single", "Queen", "King"]
+      },
+      {
+        name: "Color",
+        values: ["White", "Grey", "Blue", "Beige"]
+      }
+    ],
   },
   {
     name: "Decorative Throw Pillows Set of 4",
@@ -484,6 +635,16 @@ const products = [
     rating: 4.4,
     numReviews: 120,
     tags: ["pillows", "decorative", "set"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["18x18\"", "20x20\"", "24x24\""]
+      },
+      {
+        name: "Color",
+        values: ["Grey", "Beige", "Blue", "Patterned"]
+      }
+    ],
   },
   {
     name: "Modern Area Rug 6x9 ft",
@@ -497,6 +658,16 @@ const products = [
     rating: 4.6,
     numReviews: 75,
     tags: ["rug", "modern", "area"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["4x6 ft", "5x8 ft", "6x9 ft", "8x10 ft"]
+      },
+      {
+        name: "Color",
+        values: ["Grey", "Beige", "Blue", "Patterned"]
+      }
+    ],
   },
   {
     name: "Kitchen Knife Set 15-Piece",
@@ -510,6 +681,12 @@ const products = [
     rating: 4.7,
     numReviews: 140,
     tags: ["knives", "kitchen", "set"],
+    attributes: [
+      {
+        name: "Material",
+        values: ["Stainless Steel", "Ceramic", "Damascus Steel"]
+      }
+    ],
   },
   {
     name: "Non-Stick Cookware Set",
@@ -523,6 +700,16 @@ const products = [
     rating: 4.5,
     numReviews: 110,
     tags: ["cookware", "non-stick", "set"],
+    attributes: [
+      {
+        name: "Pieces",
+        values: ["7-Piece", "10-Piece", "15-Piece"]
+      },
+      {
+        name: "Material",
+        values: ["Aluminum", "Stainless Steel", "Cast Iron"]
+      }
+    ],
   },
   {
     name: "LED Desk Lamp with USB Port",
@@ -536,6 +723,12 @@ const products = [
     rating: 4.4,
     numReviews: 180,
     tags: ["lamp", "LED", "desk"],
+    attributes: [
+      {
+        name: "Color",
+        values: ["White", "Black", "Silver"]
+      }
+    ],
   },
   {
     name: "Wall Clock Modern Design",
@@ -549,6 +742,16 @@ const products = [
     rating: 4.3,
     numReviews: 95,
     tags: ["clock", "wall", "modern"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["Small (12\")", "Medium (14\")", "Large (16\")"]
+      },
+      {
+        name: "Color",
+        values: ["White", "Black", "Wood"]
+      }
+    ],
   },
   {
     name: "Vacuum Cleaner 2000W",
@@ -562,6 +765,16 @@ const products = [
     rating: 4.6,
     numReviews: 85,
     tags: ["vacuum", "cleaner", "powerful"],
+    attributes: [
+      {
+        name: "Type",
+        values: ["Upright", "Canister", "Handheld"]
+      },
+      {
+        name: "Color",
+        values: ["Red", "Black", "Blue"]
+      }
+    ],
   },
   // Sports
   {
@@ -576,6 +789,16 @@ const products = [
     rating: 4.5,
     numReviews: 200,
     tags: ["yoga", "mat", "non-slip"],
+    attributes: [
+      {
+        name: "Thickness",
+        values: ["3mm", "5mm", "6mm"]
+      },
+      {
+        name: "Color",
+        values: ["Purple", "Blue", "Green", "Black"]
+      }
+    ],
   },
   {
     name: "Adjustable Dumbbell Set 20kg",
@@ -589,6 +812,12 @@ const products = [
     rating: 4.6,
     numReviews: 130,
     tags: ["dumbbells", "adjustable", "strength"],
+    attributes: [
+      {
+        name: "Weight Range",
+        values: ["5-25kg", "5-50kg", "10-40kg"]
+      }
+    ],
   },
   {
     name: "Wilson Basketball Official Size",
@@ -602,6 +831,12 @@ const products = [
     rating: 4.4,
     numReviews: 160,
     tags: ["basketball", "official", "size"],
+    attributes: [
+      {
+        name: "Color",
+        values: ["Orange", "Black", "White"]
+      }
+    ],
   },
   {
     name: "Fitness Resistance Bands Set",
@@ -615,6 +850,12 @@ const products = [
     rating: 4.3,
     numReviews: 180,
     tags: ["resistance", "bands", "fitness"],
+    attributes: [
+      {
+        name: "Resistance Level",
+        values: ["Light", "Medium", "Heavy", "Extra Heavy"]
+      }
+    ],
   },
   {
     name: "Nike Dri-FIT Training Shorts",
@@ -628,6 +869,16 @@ const products = [
     rating: 4.5,
     numReviews: 140,
     tags: ["shorts", "training", "Dri-FIT"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["S", "M", "L", "XL", "XXL"]
+      },
+      {
+        name: "Color",
+        values: ["Black", "Grey", "Blue", "Red"]
+      }
+    ],
   },
   {
     name: "Under Armour Gym Bag",
@@ -641,6 +892,16 @@ const products = [
     rating: 4.4,
     numReviews: 110,
     tags: ["bag", "gym", "durable"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["Small", "Medium", "Large"]
+      },
+      {
+        name: "Color",
+        values: ["Black", "Grey", "Blue"]
+      }
+    ],
   },
   {
     name: "Jump Rope Speed Training",
@@ -654,6 +915,16 @@ const products = [
     rating: 4.2,
     numReviews: 220,
     tags: ["jump rope", "speed", "training"],
+    attributes: [
+      {
+        name: "Length",
+        values: ["8ft", "9ft", "10ft"]
+      },
+      {
+        name: "Color",
+        values: ["Black", "Red", "Blue"]
+      }
+    ],
   },
   {
     name: "Adidas Soccer Ball FIFA Approved",
@@ -667,6 +938,16 @@ const products = [
     rating: 4.7,
     numReviews: 190,
     tags: ["soccer", "ball", "FIFA"],
+    attributes: [
+      {
+        name: "Size",
+        values: ["Size 3", "Size 4", "Size 5"]
+      },
+      {
+        name: "Color",
+        values: ["White/Black", "White/Blue", "White/Red"]
+      }
+    ],
   },
 ];
 
@@ -677,9 +958,17 @@ const importData = async () => {
     const existingProducts = await Product.countDocuments();
 
     if (existingCategories > 0 || existingProducts > 0) {
-      console.log('Database already contains data. Skipping seed import to preserve existing products.');
-      console.log(`Found ${existingCategories} categories and ${existingProducts} products.`);
-      return;
+      if (process.env.FORCE_SEED !== 'true') {
+        console.log('Database already contains data. Skipping seed import to preserve existing products.');
+        console.log(`Found ${existingCategories} categories and ${existingProducts} products.`);
+        console.log('Set FORCE_SEED=true environment variable to force seed insertion.');
+        return;
+      } else {
+        console.log('FORCE_SEED=true: Clearing existing data and proceeding with fresh seed import...');
+        await Category.deleteMany();
+        await Product.deleteMany();
+        console.log('Existing data cleared.');
+      }
     }
 
     console.log('Database is empty. Proceeding with seed import...');
