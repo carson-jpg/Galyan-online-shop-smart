@@ -139,7 +139,7 @@ const ChatList = ({ onChatSelect, selectedChatId }: ChatListProps) => {
             </div>
           ) : (
             <div className="space-y-1">
-              {chats.filter((chat: Chat) => chat && chat._id && chat.seller && chat.customer).map((chat: Chat) => {
+              {chats.filter((chat: Chat) => chat && chat._id && chat.seller && chat.customer && chat.seller._id && chat.customer._id).map((chat: Chat) => {
                 const otherParticipant = getOtherParticipant(chat);
                 const unreadCount = getUnreadCount(chat);
                 const isSelected = selectedChatId === chat._id;
