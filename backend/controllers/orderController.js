@@ -241,7 +241,7 @@ const getSellerStats = async (req, res) => {
         if (productIds.some(pid => pid.toString() === item.product.toString())) {
           const itemTotal = item.price * item.quantity;
           totalSales += itemTotal;
-          totalEarnings += itemTotal * (seller.commissionRate / 100);
+          totalEarnings += itemTotal - (itemTotal * (seller.commissionRate / 100));
         }
       });
     });
