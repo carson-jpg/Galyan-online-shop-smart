@@ -37,10 +37,11 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // Update product stock
+    // Update product stock and sold count
     for (const item of orderItems) {
       const product = await Product.findById(item.product);
       product.stock -= item.quantity;
+      product.soldCount = (product.soldCount || 0) + item.quantity;
       await product.save();
     }
 
@@ -356,6 +357,13 @@ const getSellerStats = async (req, res) => {
               const itemTotal = (item.price || 0) * (item.quantity || 0);
               totalSales += itemTotal;
               totalEarnings += itemTotal - (itemTotal * ((seller.commissionRate || 10) / 100));
+
+              // Update product soldCount
+              try {
+                Product.findByIdAndUpdate(item.product, { $inc: { soldCount: item.quantity } }).exec();
+              } catch (updateError) {
+                console.error('Error updating soldCount for product:', item.product, updateError);
+              }
             }
           });
         }
@@ -375,6 +383,8 @@ const getSellerStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Get seller stats error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
     res.status(500).json({
       message: 'Failed to get seller stats',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -418,11 +428,12 @@ const reviewFraudOrder = async (req, res) => {
       order.fraudReviewNotes = notes;
       order.fraudReviewStatus = 'rejected';
 
-      // Restore product stock
+      // Restore product stock and decrement sold count
       for (const item of order.orderItems) {
         const product = await Product.findById(item.product);
         if (product) {
           product.stock += item.quantity;
+          product.soldCount = Math.max(0, (product.soldCount || 0) - item.quantity);
           await product.save();
         }
       }

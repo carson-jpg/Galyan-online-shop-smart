@@ -655,6 +655,8 @@ const getProductRecommendations = async (req, res) => {
     });
   } catch (error) {
     console.error('Get recommendations error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
     res.status(500).json({
       message: 'Failed to get recommendations',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
