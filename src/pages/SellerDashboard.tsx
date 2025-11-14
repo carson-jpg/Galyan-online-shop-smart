@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/api';
 import { Upload, X, Plus, Package, ShoppingCart, DollarSign, TrendingUp, BarChart3, Settings, Store, Zap } from 'lucide-react';
+import PricingOptimizer from '@/components/PricingOptimizer';
 
 // Helper functions for attribute parsing
 const parseAttributesString = (str: string) => {
@@ -510,6 +511,14 @@ const SellerDashboard = () => {
             Flash Sales
           </Button>
           <Button
+            variant={activeTab === 'pricing' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('pricing')}
+            className="flex-1 min-w-0"
+          >
+            <DollarSign className="h-4 w-4 mr-2" />
+            AI Pricing
+          </Button>
+          <Button
             variant={activeTab === 'settings' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('settings')}
             className="flex-1 min-w-0"
@@ -988,6 +997,59 @@ const SellerDashboard = () => {
               </form>
             </CardContent>
           </Card>
+        )}
+
+        {/* Pricing Optimizer Tab */}
+        {activeTab === 'pricing' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Pricing Optimization</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Get AI-powered pricing recommendations for your products based on market analysis, competitor pricing, and demand patterns.
+                </p>
+              </CardHeader>
+            </Card>
+
+            {/* Product Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Select Product for Pricing Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {products?.filter(product => product.isActive).map((product) => (
+                    <div key={product._id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3 mb-3">
+                        <img
+                          src={product.images[0] || "/placeholder.svg"}
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm truncate">{product.name}</h4>
+                          <p className="text-sm text-gray-600">Current: KSh {product.price.toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => setActiveTab(`pricing-${product._id}`)}
+                      >
+                        Analyze Pricing
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Individual Product Pricing Analysis */}
+        {activeTab.startsWith('pricing-') && (
+          <PricingOptimizer productId={activeTab.replace('pricing-', '')} />
         )}
 
         {/* Settings Tab */}

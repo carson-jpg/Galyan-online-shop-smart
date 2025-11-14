@@ -7,6 +7,7 @@ const {
   sendMessage,
   markMessagesAsRead,
   getUnreadCount,
+  getAISuggestions,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/auth');
 
@@ -20,6 +21,9 @@ router.get('/', getUserChats);
 
 // Get unread message count
 router.get('/unread-count', getUnreadCount);
+
+// Get AI chat suggestions
+router.get('/ai/suggestions', getAISuggestions);
 
 // Get or create chat for a product
 router.get('/:productId', getOrCreateChat);

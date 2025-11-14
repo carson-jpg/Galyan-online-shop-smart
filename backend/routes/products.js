@@ -7,6 +7,9 @@ const {
   updateProduct,
   deleteProduct,
   getTopProducts,
+  getProductRecommendations,
+  getTrendingProducts,
+  aiSearchProducts,
 } = require('../controllers/productController');
 const { protect, admin, seller } = require('../middleware/auth');
 const { upload } = require('../config/cloudinary');
@@ -16,8 +19,13 @@ const router = express.Router();
 // Public routes
 router.get('/', getProducts);
 router.get('/top', getTopProducts);
+router.get('/trending', getTrendingProducts);
+router.get('/search', aiSearchProducts);
 router.get('/category/:categoryId', getProductsByCategory);
 router.get('/:id', getProductById);
+
+// Protected routes
+router.get('/recommendations/personalized', protect, getProductRecommendations);
 
 // Categories route
 router.get('/api/categories', async (req, res) => {

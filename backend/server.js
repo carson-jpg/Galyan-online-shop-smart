@@ -56,6 +56,12 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/mpesa', require('./routes/mpesa'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/chat', require('./routes/chat'));
+app.use('/api/marketing', require('./routes/marketing'));
+app.use('/api/inventory', require('./routes/inventory'));
+app.use('/api/support', require('./routes/support'));
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/voice', require('./routes/voice'));
+app.use('/api/pricing', require('./routes/pricing'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

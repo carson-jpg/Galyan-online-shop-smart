@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Send, X, Minimize2, Maximize2 } from 'lucide-react';
 import { useChat, useProductChat, useUnreadCount } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
+import { useAISuggestions } from '@/hooks/useAISuggestions';
 import socketService from '@/lib/socket';
 
 interface Message {
@@ -16,9 +17,9 @@ interface Message {
     _id: string;
     name: string;
     profilePicture?: string;
-  };
+  } | null; // Allow null for AI messages
   content: string;
-  messageType: 'text' | 'image' | 'file';
+  messageType: 'text' | 'image' | 'file' | 'ai_response';
   timestamp: string;
   isRead: boolean;
 }
@@ -42,6 +43,7 @@ const ChatWidget = ({ productId, productName, sellerName, sellerAvatar }: ChatWi
   const { data: unreadCount } = useUnreadCount();
   const { chat, startChat, chatId } = useProductChat(productId || null);
   const { chat: activeChat, isLoading, isTyping, sendMessage, emitTyping } = useChat(chatId);
+  const { data: aiSuggestions } = useAISuggestions(productId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -174,24 +176,39 @@ const ChatWidget = ({ productId, productName, sellerName, sellerAvatar }: ChatWi
                 ) : activeChat?.messages ? (
                   <div className="space-y-3">
                     {activeChat.messages.map((msg: Message) => {
-                      const isOwnMessage = msg.sender._id === user._id;
+                      const isOwnMessage = msg.sender?._id === user._id;
+                      const isAIMessage = msg.messageType === 'ai_response';
                       return (
                         <div
                           key={msg._id}
                           className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                         >
                           <div className={`flex gap-2 max-w-[80%] ${isOwnMessage ? 'flex-row-reverse' : ''}`}>
-                            <Avatar className="w-6 h-6 flex-shrink-0">
-                              <AvatarImage src={msg.sender.profilePicture} alt={msg.sender.name} />
-                              <AvatarFallback className="text-xs">
-                                {msg.sender.name.charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
+                            {!isAIMessage && (
+                              <Avatar className="w-6 h-6 flex-shrink-0">
+                                <AvatarImage src={msg.sender?.profilePicture} alt={msg.sender?.name || 'AI Assistant'} />
+                                <AvatarFallback className="text-xs">
+                                  {msg.sender?.name?.charAt(0).toUpperCase() || 'AI'}
+                                </AvatarFallback>
+                              </Avatar>
+                            )}
+                            {isAIMessage && (
+                              <div className="w-6 h-6 flex-shrink-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">AI</span>
+                              </div>
+                            )}
                             <div className={`rounded-lg px-3 py-2 ${
                               isOwnMessage
                                 ? 'bg-primary text-primary-foreground'
+                                : isAIMessage
+                                ? 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200'
                                 : 'bg-muted'
                             }`}>
+                              {isAIMessage && (
+                                <div className="flex items-center gap-1 mb-1">
+                                  <span className="text-xs font-medium text-blue-600">AI Assistant</span>
+                                </div>
+                              )}
                               <p className="text-sm">{msg.content}</p>
                               <p className={`text-xs mt-1 ${
                                 isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
@@ -228,13 +245,28 @@ const ChatWidget = ({ productId, productName, sellerName, sellerAvatar }: ChatWi
               {chatStarted && (
                 <div className="border-t p-3">
                   <form onSubmit={handleSendMessage} className="flex gap-2">
-                    <Input
-                      placeholder="Type a message..."
-                      value={message}
-                      onChange={handleInputChange}
-                      className="flex-1"
-                      disabled={!socketService.isConnected()}
-                    />
+                    <div className="flex-1 relative">
+                      <Input
+                        placeholder="Type a message..."
+                        value={message}
+                        onChange={handleInputChange}
+                        className="pr-8"
+                        disabled={!socketService.isConnected()}
+                      />
+                      {aiSuggestions && aiSuggestions.length > 0 && !message && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-32 overflow-y-auto">
+                          {aiSuggestions.slice(0, 3).map((suggestion, index) => (
+                            <button
+                              key={index}
+                              onClick={() => setMessage(suggestion)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm text-gray-600 border-b border-gray-100 last:border-b-0"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <Button
                       type="submit"
                       size="icon"

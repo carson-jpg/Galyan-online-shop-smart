@@ -10,6 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/hooks/useAuth';
 import { useActiveFlashSales, useCreateFlashSale, useDeleteFlashSale, useAllFlashSales } from '@/hooks/useFlashSales';
+import FraudAlert from '@/components/FraudAlert';
+import InventoryInsights from '@/components/InventoryInsights';
+import SupportAutomation from '@/components/SupportAutomation';
+import AIAnalyticsDashboard from '@/components/AIAnalyticsDashboard';
 import api from '@/lib/api';
 import { Upload, X, Plus, Users, Trash2, BarChart3, TrendingUp, Package, ShoppingCart, DollarSign, User, Zap } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
@@ -476,6 +480,18 @@ const AdminDashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Fraud Alert - Show at top if there are active alerts */}
+        <FraudAlert />
+
+        {/* AI Inventory Insights */}
+        <InventoryInsights />
+
+        {/* AI Support Automation */}
+        <SupportAutomation />
+
+        {/* AI Analytics Dashboard */}
+        <AIAnalyticsDashboard />
+
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, Admin! 👋</h1>

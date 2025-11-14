@@ -4,6 +4,7 @@ const Seller = require('../models/Seller');
 
 // Import logger
 const logger = require('../utils/logger');
+const aiService = require('../utils/aiService');
 
 // Helper function to parse attributes string
 const parseAttributesString = (str) => {
@@ -120,11 +121,59 @@ const getProducts = async (req, res) => {
       }
     }
 
-    const keyword = req.query.keyword
-      ? {
-          $text: { $search: req.query.keyword },
+    // AI-powered smart search
+    let keyword = {};
+    let searchResults = null;
+
+    if (req.query.keyword) {
+      try {
+        // Use AI-powered search
+        searchResults = await aiService.smartSearch(req.query.keyword, {
+          category: req.query.category,
+          minPrice: req.query.minPrice,
+          maxPrice: req.query.maxPrice
+        });
+
+        // Build MongoDB query based on AI analysis
+        const searchQuery = { isActive: true };
+
+        if (searchResults.analysis.keywords && searchResults.analysis.keywords.length > 0) {
+          searchQuery.$or = [
+            { name: { $regex: searchResults.analysis.keywords.join('|'), $options: 'i' } },
+            { description: { $regex: searchResults.analysis.keywords.join('|'), $options: 'i' } },
+            { tags: { $in: searchResults.analysis.keywords } }
+          ];
         }
-      : {};
+
+        // Apply category filter
+        if (searchResults.analysis.category) {
+          const categoryDoc = await Category.findOne({
+            name: { $regex: searchResults.analysis.category, $options: 'i' }
+          });
+          if (categoryDoc) {
+            searchQuery.category = categoryDoc._id;
+          }
+        }
+
+        // Apply price filters
+        if (searchResults.analysis.price_range) {
+          if (searchResults.analysis.price_range.min) {
+            searchQuery.price = { $gte: searchResults.analysis.price_range.min };
+          }
+          if (searchResults.analysis.price_range.max) {
+            searchQuery.price = { ...searchQuery.price, $lte: searchResults.analysis.price_range.max };
+          }
+        }
+
+        keyword = searchQuery;
+      } catch (aiError) {
+        console.error('AI Search Error:', aiError);
+        // Fallback to basic text search
+        keyword = {
+          $text: { $search: req.query.keyword },
+        };
+      }
+    }
 
     const count = await Product.countDocuments({ ...keyword, ...categoryFilter, ...sellerFilter });
     const products = await Product.find({ ...keyword, ...categoryFilter, ...sellerFilter })
@@ -144,6 +193,7 @@ const getProducts = async (req, res) => {
       page,
       pages: Math.ceil(count / pageSize),
       total: count,
+      searchAnalysis: searchResults ? searchResults.analysis : null,
     });
   } catch (error) {
     console.error('Get products error:', error);
@@ -555,6 +605,87 @@ const getTopProducts = async (req, res) => {
   }
 };
 
+// @desc    Get AI-powered product recommendations
+// @route   GET /api/products/recommendations
+// @access  Private
+const getProductRecommendations = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const limit = parseInt(req.query.limit) || 5;
+
+    const recommendations = await aiService.getPersonalizedRecommendations(userId, limit);
+
+    res.json({
+      recommendations,
+      total: recommendations.length
+    });
+  } catch (error) {
+    console.error('Get recommendations error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get trending/popular products with AI insights
+// @route   GET /api/products/trending
+// @access  Public
+const getTrendingProducts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Get products with high ratings and recent activity
+    const products = await Product.find({ isActive: true })
+      .populate('category', 'name')
+      .sort({ soldCount: -1, rating: -1, createdAt: -1 })
+      .limit(limit);
+
+    res.json({
+      products,
+      total: products.length
+    });
+  } catch (error) {
+    console.error('Get trending products error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    AI-powered search endpoint
+// @route   GET /api/products/search
+// @access  Public
+const aiSearchProducts = async (req, res) => {
+  try {
+    const { q: query, category, minPrice, maxPrice, limit = 20 } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
+
+    const searchResults = await aiService.smartSearch(query, {
+      category,
+      minPrice: minPrice ? parseFloat(minPrice) : undefined,
+      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+    });
+
+    // Get actual products from database
+    const products = await Product.find(searchResults.products.length > 0 ? {
+      _id: { $in: searchResults.products.map(p => p._id || p) },
+      isActive: true
+    } : { isActive: true })
+      .populate('category', 'name')
+      .populate('seller', 'businessName')
+      .limit(parseInt(limit));
+
+    res.json({
+      products,
+      analysis: searchResults.analysis,
+      total: products.length,
+      searchQuery: query
+    });
+  } catch (error) {
+    console.error('AI Search error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getProducts,
   getProductById,
@@ -563,4 +694,7 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getTopProducts,
+  getProductRecommendations,
+  getTrendingProducts,
+  aiSearchProducts,
 };

@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useUnreadCount } from "@/hooks/useChat";
 import { useNotifications } from "@/hooks/useNotifications";
+import SmartSearchBar from "@/components/SmartSearchBar";
 import { useState, useEffect, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -111,27 +112,9 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Search Bar - Hidden on small screens, shown on md and up */}
+          {/* Smart Search Bar - Hidden on small screens, shown on md and up */}
           <div className="hidden md:flex flex-1 max-w-xl mx-4 lg:mx-8">
-            <form onSubmit={handleSearch} className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search for products..."
-                className="pl-10 pr-12 h-10 w-full rounded-full border-2 focus:border-primary transition-colors"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleSearchKeyPress}
-              />
-              <Button
-                type="submit"
-                variant="ghost"
-                size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 px-3 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
-                disabled={!searchQuery.trim()}
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </form>
+            <SmartSearchBar className="w-full" />
           </div>
 
           {/* Mobile Search Button */}
@@ -270,19 +253,13 @@ const Navbar = () => {
                     <SheetTitle className="text-left">Menu</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6 space-y-4">
-                    {/* Mobile Search */}
+                    {/* Mobile Smart Search */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Search Products</label>
-                      <form onSubmit={(e) => { handleSearch(e); setIsMobileMenuOpen(false); }} className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Search for products..."
-                          className="pl-10"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyPress={handleSearchKeyPress}
-                        />
-                      </form>
+                      <label className="text-sm font-medium">Smart Search</label>
+                      <SmartSearchBar
+                        className="w-full"
+                        placeholder="AI-powered search..."
+                      />
                     </div>
 
                     {/* Navigation Links */}

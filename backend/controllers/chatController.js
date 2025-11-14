@@ -2,6 +2,7 @@ const Chat = require('../models/Chat');
 const User = require('../models/User');
 const Seller = require('../models/Seller');
 const Product = require('../models/Product');
+const aiService = require('../utils/aiService');
 
 // @desc    Get all chats for a user
 // @route   GET /api/chat
@@ -216,8 +217,47 @@ const sendMessage = async (req, res) => {
 
     const message = chat.messages[chat.messages.length - 1];
 
+    // Generate AI response if message is from customer and not to AI
+    let aiResponse = null;
+    if (isCustomer && messageType === 'text' && !content.toLowerCase().includes('ai') && !content.toLowerCase().includes('bot')) {
+      try {
+        // Get chat context
+        const recentMessages = chat.messages.slice(-5).map(msg => ({
+          role: msg.sender.toString() === senderId.toString() ? 'user' : 'assistant',
+          content: msg.content
+        }));
+
+        const context = {
+          product: chat.product ? await Product.findById(chat.product).select('name category price') : null,
+          seller: chat.seller ? await Seller.findById(chat.seller).select('businessName') : null,
+          recentMessages
+        };
+
+        aiResponse = await aiService.generateChatResponse(content, context);
+
+        if (aiResponse) {
+          const aiMessage = {
+            sender: null, // AI sender
+            content: aiResponse,
+            messageType: 'ai_response',
+            timestamp: new Date(),
+            isRead: false
+          };
+
+          chat.messages.push(aiMessage);
+          chat.customerUnreadCount += 1; // AI response counts as unread for customer
+          await chat.save();
+          await chat.populate('messages.sender', 'name profilePicture');
+        }
+      } catch (aiError) {
+        console.error('AI Response Error:', aiError);
+        // Continue without AI response if it fails
+      }
+    }
+
     res.json({
       message,
+      aiResponse: aiResponse ? chat.messages[chat.messages.length - 1] : null,
       chatId: chat._id
     });
   } catch (error) {
@@ -302,6 +342,41 @@ const getUnreadCount = async (req, res) => {
   }
 };
 
+// @desc    Get AI chat suggestions
+// @route   GET /api/chat/ai-suggestions
+// @access  Private
+const getAISuggestions = async (req, res) => {
+  try {
+    const { productId } = req.query;
+    let suggestions = [];
+
+    if (productId) {
+      const product = await Product.findById(productId).select('name category price');
+      if (product) {
+        suggestions = [
+          `Tell me more about the ${product.name}`,
+          `What are the specifications of this product?`,
+          `Do you have similar products?`,
+          `What's the warranty on this item?`,
+          `Can I get this delivered today?`
+        ];
+      }
+    } else {
+      suggestions = [
+        `Help me find a product`,
+        `Check my order status`,
+        `I need help with a return`,
+        `Show me popular products`,
+        `Tell me about shipping costs`
+      ];
+    }
+
+    res.json({ suggestions });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getUserChats,
   getOrCreateChat,
@@ -310,4 +385,5 @@ module.exports = {
   sendMessage,
   markMessagesAsRead,
   getUnreadCount,
+  getAISuggestions,
 };

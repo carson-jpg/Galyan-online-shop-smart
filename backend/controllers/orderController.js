@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Seller = require('../models/Seller');
 const User = require('../models/User');
 const emailService = require('../utils/emailService');
+const fraudDetectionService = require('../utils/fraudDetectionService');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -52,6 +53,21 @@ const createOrder = async (req, res) => {
       shippingPrice,
       totalPrice,
     });
+
+    // Perform fraud detection analysis
+    const fraudAnalysis = await fraudDetectionService.analyzeOrder({
+      ...order.toObject(),
+      customer: req.user._id
+    });
+
+    // Add fraud analysis to order
+    order.fraudAnalysis = fraudAnalysis;
+
+    // If high risk, flag for manual review
+    if (fraudAnalysis.riskLevel === 'high') {
+      order.status = 'Under Review';
+      order.fraudFlags = fraudAnalysis.flags;
+    }
 
     const createdOrder = await order.save();
 
@@ -278,6 +294,60 @@ const getSellerStats = async (req, res) => {
   }
 };
 
+// @desc    Get fraud detection statistics
+// @route   GET /api/orders/fraud-stats
+// @access  Private/Admin
+const getFraudStats = async (req, res) => {
+  try {
+    const timeframe = parseInt(req.query.days) || 30;
+    const stats = await fraudDetectionService.getFraudStatistics(timeframe);
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Get fraud stats error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Review and approve/reject order under fraud review
+// @route   PUT /api/orders/:id/fraud-review
+// @access  Private/Admin
+const reviewFraudOrder = async (req, res) => {
+  try {
+    const { action, notes } = req.body; // action: 'approve' or 'reject'
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (action === 'approve') {
+      order.status = 'Processing';
+      order.fraudReviewNotes = notes;
+      order.fraudReviewStatus = 'approved';
+    } else if (action === 'reject') {
+      order.status = 'Cancelled';
+      order.fraudReviewNotes = notes;
+      order.fraudReviewStatus = 'rejected';
+
+      // Restore product stock
+      for (const item of order.orderItems) {
+        const product = await Product.findById(item.product);
+        if (product) {
+          product.stock += item.quantity;
+          await product.save();
+        }
+      }
+    }
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error('Review fraud order error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrderById,
@@ -286,4 +356,6 @@ module.exports = {
   updateOrderToDelivered,
   updateOrderStatus,
   getSellerStats,
+  getFraudStats,
+  reviewFraudOrder,
 };

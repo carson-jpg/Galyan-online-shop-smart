@@ -6,6 +6,9 @@ import CategoryGrid from "@/components/CategoryGrid";
 import ProductCard from "@/components/ProductCard";
 import FlashSaleCarousel from "@/components/FlashSaleCarousel";
 import Footer from "@/components/Footer";
+import ProductRecommendations from "@/components/ProductRecommendations";
+import PersonalizedMarketing from "@/components/PersonalizedMarketing";
+import VoiceCommerce from "@/components/VoiceCommerce";
 import { useTopProducts } from "@/hooks/useProducts";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
@@ -37,6 +40,42 @@ const Index = () => {
       <Hero />
       <FlashSaleCarousel />
       <CategoryGrid />
+
+      {/* AI Product Recommendations */}
+      {user && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <ProductRecommendations />
+          </div>
+        </section>
+      )}
+
+      {/* AI Personalized Marketing */}
+      {user && (
+        <section className="py-16 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div className="container mx-auto px-4">
+            <PersonalizedMarketing />
+          </div>
+        </section>
+      )}
+
+      {/* Voice Commerce */}
+      {user && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Voice Shopping</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Experience the future of shopping with AI-powered voice commands.
+                Simply speak your shopping needs and let our intelligent assistant help you find the perfect products.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <VoiceCommerce />
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="py-16 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-4">
