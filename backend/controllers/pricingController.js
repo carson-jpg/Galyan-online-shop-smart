@@ -1,210 +1,196 @@
-const pricingService = require('../utils/pricingService');
 const Product = require('../models/Product');
-const Seller = require('../models/Seller');
+const Order = require('../models/Order');
+const aiService = require('../utils/aiService');
 
-// @desc    Analyze pricing for a product
-// @route   GET /api/pricing/products/:productId/analyze
-// @access  Private/Seller or Admin
-const analyzeProductPricing = async (req, res) => {
+// @desc    Get pricing analysis for a product
+// @route   GET /api/products/pricing-analysis/:id
+// @access  Private/Admin or Private/Seller
+const getPricingAnalysis = async (req, res) => {
   try {
-    const { productId } = req.params;
-    const product = await Product.findById(productId);
+    const { id } = req.params;
+    const product = await Product.findById(id).populate('category', 'name');
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Check if user is authorized
-    if (req.user.role === 'seller') {
-      const seller = await Seller.findOne({ user: req.user._id });
-      if (!seller || product.seller.toString() !== seller._id.toString()) {
-        return res.status(403).json({ message: 'Not authorized to analyze this product' });
+    // Check if user is authorized (admin or product seller)
+    if (req.user.role !== 'admin') {
+      const sellerProducts = await Product.find({ seller: req.user._id });
+      const isOwner = sellerProducts.some(p => p._id.toString() === id);
+      if (!isOwner) {
+        return res.status(403).json({ message: 'Not authorized to view pricing analysis for this product' });
       }
     }
 
-    const analysis = await pricingService.analyzePricing(productId);
+    // Get current pricing data
+    const currentPrice = product.price;
+    const originalPrice = product.originalPrice || currentPrice;
 
-    if (!analysis) {
-      return res.status(404).json({ message: 'Pricing analysis not available' });
+    // Get competitor pricing (mock data - in real implementation, this would come from market data)
+    const competitors = [
+      { name: 'Shop A', price: currentPrice * 0.95 },
+      { name: 'Shop B', price: currentPrice * 1.05 },
+      { name: 'Shop C', price: currentPrice * 0.98 },
+      { name: 'Shop D', price: currentPrice * 1.12 }
+    ];
+
+    // Calculate price range based on competitors and costs
+    const competitorPrices = competitors.map(c => c.price);
+    const minCompetitorPrice = Math.min(...competitorPrices);
+    const maxCompetitorPrice = Math.max(...competitorPrices);
+
+    // Assume cost is 60% of current price (rough estimate)
+    const estimatedCost = currentPrice * 0.6;
+    const minPrice = Math.max(estimatedCost * 1.1, minCompetitorPrice * 0.9);
+    const maxPrice = Math.min(currentPrice * 1.5, maxCompetitorPrice * 1.2);
+
+    const priceRange = {
+      min: Math.round(minPrice),
+      max: Math.round(maxPrice)
+    };
+
+    // Get sales data for the product
+    const productOrders = await Order.find({
+      'orderItems.product': product._id,
+      isPaid: true
+    });
+
+    const totalSold = productOrders.reduce((sum, order) => {
+      const item = order.orderItems.find(i => i.product.toString() === product._id);
+      return sum + (item ? item.quantity : 0);
+    }, 0);
+
+    // Calculate demand score based on sales velocity
+    const daysSinceCreation = Math.max(1, (Date.now() - new Date(product.createdAt)) / (1000 * 60 * 60 * 24));
+    const dailySalesRate = totalSold / daysSinceCreation;
+
+    let demandScore = 5; // default medium demand
+    if (dailySalesRate > 5) demandScore = 9; // high demand
+    else if (dailySalesRate > 2) demandScore = 7; // good demand
+    else if (dailySalesRate < 0.5) demandScore = 3; // low demand
+
+    // Calculate profit margin (rough estimate)
+    const profitMargin = Math.round(((currentPrice - estimatedCost) / currentPrice) * 100);
+
+    // AI recommended price (simple algorithm for now)
+    let recommendedPrice = currentPrice;
+    let reasoning = '';
+
+    if (demandScore >= 8 && currentPrice < maxPrice * 0.9) {
+      // High demand, can increase price
+      recommendedPrice = Math.min(currentPrice * 1.15, maxPrice);
+      reasoning = 'High demand detected - consider price increase';
+    } else if (demandScore <= 4 && currentPrice > minPrice * 1.1) {
+      // Low demand, consider discount
+      recommendedPrice = Math.max(currentPrice * 0.9, minPrice);
+      reasoning = 'Low demand - consider competitive pricing';
+    } else if (competitorPrices.some(p => p < currentPrice * 0.95)) {
+      // Competitors are cheaper
+      recommendedPrice = Math.max(currentPrice * 0.95, minPrice);
+      reasoning = 'Competitors offer lower prices - consider matching';
+    } else {
+      reasoning = 'Current price appears optimal based on market conditions';
     }
 
-    res.json(analysis);
+    recommendedPrice = Math.round(recommendedPrice);
+
+    // Market analysis insights
+    const marketAnalysis = {
+      insights: [
+        demandScore >= 8 ? 'High demand product - pricing power available' : 'Moderate demand - monitor competitor pricing',
+        profitMargin > 30 ? 'Healthy profit margins maintained' : 'Profit margins could be optimized',
+        totalSold > 50 ? 'Proven product performance' : 'New product - monitor sales trends',
+        `Price positioned ${currentPrice > recommendedPrice ? 'above' : 'below'} market average`
+      ]
+    };
+
+    // Confidence score based on data availability
+    const confidence = Math.min(95, Math.max(70, totalSold * 2 + demandScore * 5));
+
+    res.json({
+      currentPrice,
+      recommendedPrice,
+      priceRange,
+      marketAnalysis,
+      competitorPrices: competitors,
+      demandScore,
+      profitMargin,
+      confidence,
+      reasoning,
+      salesData: {
+        totalSold,
+        dailySalesRate: Math.round(dailySalesRate * 100) / 100,
+        daysSinceLaunch: Math.round(daysSinceCreation)
+      }
+    });
+
   } catch (error) {
-    console.error('Analyze product pricing error:', error);
-    res.status(500).json({ message: error.message });
+    console.error('Pricing Analysis Error:', error);
+    res.status(500).json({
+      message: 'Failed to get pricing analysis',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
-// @desc    Get pricing recommendations for seller
-// @route   GET /api/pricing/recommendations
-// @access  Private/Seller
-const getPricingRecommendations = async (req, res) => {
+// @desc    Apply AI recommended pricing
+// @route   POST /api/products/optimize-price/:id
+// @access  Private/Admin or Private/Seller
+const optimizeProductPrice = async (req, res) => {
   try {
-    const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller || !seller.isActive) {
-      return res.status(403).json({ message: 'Seller account not approved' });
-    }
+    const { id } = req.params;
+    const { customPrice } = req.body;
 
-    const recommendations = await pricingService.getPricingRecommendations(seller._id);
-    res.json(recommendations);
-  } catch (error) {
-    console.error('Get pricing recommendations error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Apply dynamic pricing
-// @route   PUT /api/pricing/products/:productId/apply
-// @access  Private/Seller or Admin
-const applyDynamicPricing = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const { newPrice, reason } = req.body;
-
-    if (!newPrice || isNaN(newPrice) || newPrice <= 0) {
-      return res.status(400).json({ message: 'Valid new price is required' });
-    }
-
-    const product = await Product.findById(productId);
+    const product = await Product.findById(id);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Check if user is authorized
-    if (req.user.role === 'seller') {
-      const seller = await Seller.findOne({ user: req.user._id });
-      if (!seller || product.seller.toString() !== seller._id.toString()) {
+    // Check authorization
+    if (req.user.role !== 'admin') {
+      const sellerProducts = await Product.find({ seller: req.user._id });
+      const isOwner = sellerProducts.some(p => p._id.toString() === id);
+      if (!isOwner) {
         return res.status(403).json({ message: 'Not authorized to modify this product' });
       }
     }
 
-    const result = await pricingService.applyDynamicPricing(productId, newPrice, reason || 'AI optimization');
-
-    if (!result.success) {
-      return res.status(400).json({ message: result.error });
-    }
-
-    res.json(result);
-  } catch (error) {
-    console.error('Apply dynamic pricing error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get pricing dashboard data
-// @route   GET /api/pricing/dashboard
-// @access  Private/Seller
-const getPricingDashboard = async (req, res) => {
-  try {
-    const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller || !seller.isActive) {
-      return res.status(403).json({ message: 'Seller account not approved' });
-    }
-
-    const recommendations = await pricingService.getPricingRecommendations(seller._id);
-
-    // Calculate dashboard metrics
-    const totalProducts = recommendations.totalProducts;
-    const opportunities = recommendations.recommendations.filter(r => r.priceDifference > 5);
-    const risks = recommendations.recommendations.filter(r => r.priceDifference < -5);
-
-    const potentialRevenueIncrease = opportunities.reduce((sum, r) => {
-      // Estimate revenue impact (simplified)
-      return sum + (r.priceDifference / 100) * r.currentPrice;
-    }, 0);
-
-    res.json({
-      summary: {
-        totalProducts,
-        pricingOpportunities: opportunities.length,
-        pricingRisks: risks.length,
-        potentialRevenueIncrease: Math.round(potentialRevenueIncrease)
-      },
-      recommendations: recommendations.recommendations.slice(0, 10), // Top 10
-      generatedAt: new Date()
+    // Get pricing analysis
+    const analysisResponse = await getPricingAnalysis({
+      params: { id },
+      user: req.user
+    }, {
+      json: () => {},
+      status: () => ({ json: () => {} })
     });
-  } catch (error) {
-    console.error('Get pricing dashboard error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
 
-// @desc    Bulk apply pricing recommendations
-// @route   POST /api/pricing/bulk-apply
-// @access  Private/Seller
-const bulkApplyPricing = async (req, res) => {
-  try {
-    const { recommendations } = req.body;
+    // For now, use the recommended price or custom price
+    const newPrice = customPrice || analysisResponse.recommendedPrice || product.price;
 
-    if (!Array.isArray(recommendations) || recommendations.length === 0) {
-      return res.status(400).json({ message: 'Valid recommendations array is required' });
-    }
-
-    const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller || !seller.isActive) {
-      return res.status(403).json({ message: 'Seller account not approved' });
-    }
-
-    const results = [];
-    let successCount = 0;
-    let failureCount = 0;
-
-    for (const rec of recommendations.slice(0, 10)) { // Limit bulk operations
-      try {
-        // Verify product ownership
-        const product = await Product.findById(rec.productId);
-        if (product && product.seller.toString() === seller._id.toString()) {
-          const result = await pricingService.applyDynamicPricing(
-            rec.productId,
-            rec.recommendedPrice,
-            'Bulk AI optimization'
-          );
-
-          if (result.success) {
-            successCount++;
-            results.push(result);
-          } else {
-            failureCount++;
-            results.push({ ...result, productId: rec.productId });
-          }
-        } else {
-          failureCount++;
-          results.push({
-            productId: rec.productId,
-            success: false,
-            error: 'Product not found or not owned by seller'
-          });
-        }
-      } catch (error) {
-        failureCount++;
-        results.push({
-          productId: rec.productId,
-          success: false,
-          error: error.message
-        });
-      }
-    }
+    // Update product price
+    product.price = newPrice;
+    await product.save();
 
     res.json({
       success: true,
-      results,
-      summary: {
-        total: recommendations.length,
-        successful: successCount,
-        failed: failureCount
-      }
+      message: 'Product price optimized successfully',
+      newPrice,
+      previousPrice: product.price,
+      priceChange: ((newPrice - product.price) / product.price) * 100
     });
+
   } catch (error) {
-    console.error('Bulk apply pricing error:', error);
-    res.status(500).json({ message: error.message });
+    console.error('Price Optimization Error:', error);
+    res.status(500).json({
+      message: 'Failed to optimize product price',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
 module.exports = {
-  analyzeProductPricing,
-  getPricingRecommendations,
-  applyDynamicPricing,
-  getPricingDashboard,
-  bulkApplyPricing,
+  getPricingAnalysis,
+  optimizeProductPrice
 };

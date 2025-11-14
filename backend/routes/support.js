@@ -1,23 +1,20 @@
 const express = require('express');
-const {
-  submitSupportRequest,
-  getSupportTypes,
-  getSupportHistory,
-  getSupportAnalytics,
-} = require('../controllers/supportController');
+const { getSupportAutomationStats, getSupportTicketAnalytics, trainSupportModel } = require('../controllers/supportController');
 const { protect, admin } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Public routes
-router.get('/types', getSupportTypes);
-
-// Protected routes
+// All support routes require authentication and admin access
 router.use(protect);
-router.post('/request', submitSupportRequest);
-router.get('/history', getSupportHistory);
+router.use(admin);
 
-// Admin routes
-router.get('/analytics', admin, getSupportAnalytics);
+// Get support automation statistics
+router.get('/automation-stats', getSupportAutomationStats);
+
+// Get support ticket analytics
+router.get('/ticket-analytics', getSupportTicketAnalytics);
+
+// Train AI support model
+router.post('/train-model', trainSupportModel);
 
 module.exports = router;

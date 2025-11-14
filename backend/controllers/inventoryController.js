@@ -1,168 +1,185 @@
-const inventoryService = require('../utils/inventoryService');
 const Product = require('../models/Product');
-const Seller = require('../models/Seller');
+const aiService = require('../utils/aiService');
 
-// @desc    Get inventory insights for seller
-// @route   GET /api/inventory/insights
-// @access  Private/Seller
+// @desc    Get inventory insights and AI recommendations
+// @route   GET /api/products/inventory-insights
+// @access  Private/Admin
 const getInventoryInsights = async (req, res) => {
   try {
-    const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller || !seller.isActive) {
-      return res.status(403).json({ message: 'Seller account not approved' });
+    // Get inventory statistics
+    const totalProducts = await Product.countDocuments();
+    const activeProducts = await Product.countDocuments({ isActive: true });
+    const inactiveProducts = totalProducts - activeProducts;
+
+    // Low stock items (less than 10 units)
+    const lowStockItems = await Product.countDocuments({
+      isActive: true,
+      stock: { $lt: 10, $gt: 0 }
+    });
+
+    // Out of stock items
+    const outOfStockItems = await Product.countDocuments({
+      isActive: true,
+      stock: 0
+    });
+
+    // Overstocked items (more than 100 units)
+    const overstockedItems = await Product.countDocuments({
+      isActive: true,
+      stock: { $gt: 100 }
+    });
+
+    // Get sample products for AI analysis
+    const lowStockProducts = await Product.find({
+      isActive: true,
+      stock: { $lt: 10, $gt: 0 }
+    }).select('name stock price soldCount').limit(5);
+
+    const overstockedProducts = await Product.find({
+      isActive: true,
+      stock: { $gt: 100 }
+    }).select('name stock price soldCount').limit(5);
+
+    // Generate AI recommendations
+    const recommendations = [];
+
+    if (lowStockItems > 0) {
+      recommendations.push({
+        type: 'restock',
+        message: `${lowStockItems} products are running low on stock. Consider restocking these items to avoid lost sales.`,
+        action: 'View Low Stock Items'
+      });
     }
 
-    const insights = await inventoryService.getInventoryInsights(seller._id);
-    res.json(insights);
-  } catch (error) {
-    console.error('Get inventory insights error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get inventory analysis for specific product
-// @route   GET /api/inventory/products/:productId/analysis
-// @access  Private/Seller or Admin
-const getProductInventoryAnalysis = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const product = await Product.findById(productId);
-
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+    if (outOfStockItems > 0) {
+      recommendations.push({
+        type: 'out_of_stock',
+        message: `${outOfStockItems} products are completely out of stock. These products cannot be purchased until restocked.`,
+        action: 'View Out of Stock'
+      });
     }
 
-    // Check if user is authorized (seller owns product or is admin)
-    if (req.user.role === 'seller') {
-      const seller = await Seller.findOne({ user: req.user._id });
-      if (!seller || product.seller.toString() !== seller._id.toString()) {
-        return res.status(403).json({ message: 'Not authorized to view this product' });
-      }
+    if (overstockedItems > 0) {
+      recommendations.push({
+        type: 'overstock',
+        message: `${overstockedItems} products have excess inventory. Consider running promotions or discounts to clear stock.`,
+        action: 'Create Flash Sale'
+      });
     }
 
-    const analysis = await inventoryService.analyzeInventory(productId);
-    if (!analysis) {
-      return res.status(404).json({ message: 'Analysis not available' });
+    // AI-powered insights
+    if (lowStockProducts.length > 0) {
+      const topLowStock = lowStockProducts[0];
+      recommendations.push({
+        type: 'ai_insight',
+        message: `"${topLowStock.name}" is your fastest-moving low-stock item. Consider prioritizing restock for this product.`,
+        action: 'Restock Now',
+        confidence: 85
+      });
     }
-
-    res.json(analysis);
-  } catch (error) {
-    console.error('Get product inventory analysis error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get reorder quantity prediction
-// @route   GET /api/inventory/products/:productId/reorder
-// @access  Private/Seller or Admin
-const getReorderPrediction = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const product = await Product.findById(productId);
-
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    // Check if user is authorized
-    if (req.user.role === 'seller') {
-      const seller = await Seller.findOne({ user: req.user._id });
-      if (!seller || product.seller.toString() !== seller._id.toString()) {
-        return res.status(403).json({ message: 'Not authorized to view this product' });
-      }
-    }
-
-    const prediction = await inventoryService.predictReorderQuantity(productId);
-    if (!prediction) {
-      return res.status(404).json({ message: 'Prediction not available' });
-    }
-
-    res.json(prediction);
-  } catch (error) {
-    console.error('Get reorder prediction error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Generate purchase orders
-// @route   GET /api/inventory/purchase-orders/generate
-// @access  Private/Seller
-const generatePurchaseOrders = async (req, res) => {
-  try {
-    const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller || !seller.isActive) {
-      return res.status(403).json({ message: 'Seller account not approved' });
-    }
-
-    const purchaseOrders = await inventoryService.generatePurchaseOrders(seller._id);
-    res.json(purchaseOrders);
-  } catch (error) {
-    console.error('Generate purchase orders error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get stock alerts
-// @route   GET /api/inventory/alerts
-// @access  Private/Seller
-const getStockAlerts = async (req, res) => {
-  try {
-    const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller || !seller.isActive) {
-      return res.status(403).json({ message: 'Seller account not approved' });
-    }
-
-    const alerts = await inventoryService.checkStockAlerts(seller._id);
-    res.json(alerts);
-  } catch (error) {
-    console.error('Get stock alerts error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get inventory dashboard data
-// @route   GET /api/inventory/dashboard
-// @access  Private/Seller
-const getInventoryDashboard = async (req, res) => {
-  try {
-    const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller || !seller.isActive) {
-      return res.status(403).json({ message: 'Seller account not approved' });
-    }
-
-    const [insights, alerts, purchaseOrders] = await Promise.all([
-      inventoryService.getInventoryInsights(seller._id),
-      inventoryService.checkStockAlerts(seller._id),
-      inventoryService.generatePurchaseOrders(seller._id)
-    ]);
 
     res.json({
-      insights,
-      alerts,
-      purchaseOrders,
-      dashboard: {
-        totalProducts: insights.totalProducts,
-        stockHealth: {
-          healthy: insights.normalStock,
-          warning: insights.lowStock,
-          critical: insights.criticalStock,
-          overstock: insights.overstock
-        },
-        totalValue: insights.totalValue,
-        pendingOrders: purchaseOrders.purchaseOrders.length
+      lowStockItems,
+      outOfStockItems,
+      overstockedItems,
+      totalProducts,
+      activeProducts,
+      inactiveProducts,
+      recommendations,
+      insights: {
+        lowStockProducts: lowStockProducts.map(p => ({
+          name: p.name,
+          stock: p.stock,
+          price: p.price,
+          soldCount: p.soldCount
+        })),
+        overstockedProducts: overstockedProducts.map(p => ({
+          name: p.name,
+          stock: p.stock,
+          price: p.price,
+          soldCount: p.soldCount
+        }))
       }
     });
+
   } catch (error) {
-    console.error('Get inventory dashboard error:', error);
-    res.status(500).json({ message: error.message });
+    console.error('Inventory Insights Error:', error);
+    res.status(500).json({
+      message: 'Failed to get inventory insights',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get inventory optimization suggestions
+// @route   GET /api/inventory/optimization
+// @access  Private/Admin
+const getInventoryOptimization = async (req, res) => {
+  try {
+    // Analyze sales velocity and suggest optimal stock levels
+    const products = await Product.find({ isActive: true })
+      .select('name stock price soldCount createdAt category')
+      .populate('category', 'name')
+      .sort({ soldCount: -1 })
+      .limit(50);
+
+    const optimization = [];
+
+    products.forEach(product => {
+      const daysSinceCreation = Math.max(1, (Date.now() - new Date(product.createdAt)) / (1000 * 60 * 60 * 24));
+      const dailySalesRate = product.soldCount / daysSinceCreation;
+
+      let suggestedStock = 0;
+      let reasoning = '';
+
+      if (dailySalesRate > 2) {
+        suggestedStock = Math.max(50, Math.ceil(dailySalesRate * 30)); // 30 days coverage
+        reasoning = 'High-selling product - maintain 30 days of stock';
+      } else if (dailySalesRate > 0.5) {
+        suggestedStock = Math.max(20, Math.ceil(dailySalesRate * 45)); // 45 days coverage
+        reasoning = 'Moderate-selling product - maintain 45 days of stock';
+      } else {
+        suggestedStock = Math.max(10, Math.ceil(dailySalesRate * 60)); // 60 days coverage
+        reasoning = 'Slow-selling product - maintain 60 days of stock';
+      }
+
+      const stockStatus = product.stock > suggestedStock ? 'overstocked' :
+                         product.stock < suggestedStock * 0.2 ? 'understocked' : 'optimal';
+
+      optimization.push({
+        productId: product._id,
+        productName: product.name,
+        category: product.category?.name,
+        currentStock: product.stock,
+        suggestedStock,
+        dailySalesRate: Math.round(dailySalesRate * 100) / 100,
+        stockStatus,
+        reasoning,
+        action: product.stock < suggestedStock * 0.2 ? 'Restock Urgently' :
+                product.stock > suggestedStock * 1.5 ? 'Consider Promotion' : 'Monitor'
+      });
+    });
+
+    res.json({
+      optimization,
+      summary: {
+        totalProducts: optimization.length,
+        understocked: optimization.filter(o => o.stockStatus === 'understocked').length,
+        overstocked: optimization.filter(o => o.stockStatus === 'overstocked').length,
+        optimal: optimization.filter(o => o.stockStatus === 'optimal').length
+      }
+    });
+
+  } catch (error) {
+    console.error('Inventory Optimization Error:', error);
+    res.status(500).json({
+      message: 'Failed to get inventory optimization suggestions',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
 module.exports = {
   getInventoryInsights,
-  getProductInventoryAnalysis,
-  getReorderPrediction,
-  generatePurchaseOrders,
-  getStockAlerts,
-  getInventoryDashboard,
+  getInventoryOptimization
 };

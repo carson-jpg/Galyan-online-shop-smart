@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAnalyticsDashboard } = require('../controllers/analyticsController');
+const { getAIAnalyticsInsights, getDetailedAnalytics } = require('../controllers/analyticsController');
 const { protect, admin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -8,6 +8,10 @@ const router = express.Router();
 router.use(protect);
 router.use(admin);
 
-router.get('/dashboard', getAnalyticsDashboard);
+// Get AI analytics insights
+router.get('/ai-insights', getAIAnalyticsInsights);
+
+// Get detailed analytics data
+router.get('/detailed', getDetailedAnalytics);
 
 module.exports = router;

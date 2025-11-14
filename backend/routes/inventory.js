@@ -1,27 +1,17 @@
 const express = require('express');
-const {
-  getInventoryInsights,
-  getProductInventoryAnalysis,
-  getReorderPrediction,
-  generatePurchaseOrders,
-  getStockAlerts,
-  getInventoryDashboard,
-} = require('../controllers/inventoryController');
-const { protect, seller, admin } = require('../middleware/auth');
+const { getInventoryInsights, getInventoryOptimization } = require('../controllers/inventoryController');
+const { protect, admin } = require('../middleware/auth');
 
 const router = express.Router();
 
-// All inventory routes require authentication
+// All inventory routes require authentication and admin access
 router.use(protect);
+router.use(admin);
 
-// Seller routes
-router.get('/insights', seller, getInventoryInsights);
-router.get('/dashboard', seller, getInventoryDashboard);
-router.get('/alerts', seller, getStockAlerts);
-router.get('/purchase-orders/generate', seller, generatePurchaseOrders);
+// Get inventory insights
+router.get('/insights', getInventoryInsights);
 
-// Product-specific routes (seller or admin)
-router.get('/products/:productId/analysis', getProductInventoryAnalysis);
-router.get('/products/:productId/reorder', getReorderPrediction);
+// Get inventory optimization suggestions
+router.get('/optimization', getInventoryOptimization);
 
 module.exports = router;
