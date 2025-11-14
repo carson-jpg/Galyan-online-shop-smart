@@ -335,7 +335,7 @@ const getSellerStats = async (req, res) => {
       orders = await Order.find({
         'orderItems.product': { $in: productIds },
         isPaid: true
-      }).populate('orderItems.product');
+      });
     } catch (orderError) {
       console.error('Error fetching orders:', orderError);
       return res.status(500).json({ message: 'Error fetching order data' });
@@ -352,8 +352,7 @@ const getSellerStats = async (req, res) => {
       orders.forEach(order => {
         if (order && order.orderItems && Array.isArray(order.orderItems)) {
           order.orderItems.forEach(item => {
-            if (item && item.product && item.product._id &&
-                productIds.some(pid => pid.toString() === item.product._id.toString())) {
+            if (item && item.product && productIds.some(pid => pid.toString() === item.product.toString())) {
               const itemTotal = (item.price || 0) * (item.quantity || 0);
               totalSales += itemTotal;
               totalEarnings += itemTotal - (itemTotal * ((seller.commissionRate || 10) / 100));
