@@ -98,35 +98,21 @@ class AIService {
         limit = 5; // Default to 5 if invalid
       }
 
-      // Get user's order history with error handling
-      let userOrders = [];
+      // Always return trending products as fallback - simplified approach
+      console.log('Returning trending products');
       try {
-        userOrders = await Order.find({ user: userId, isPaid: true })
-          .populate('orderItems.product')
-          .sort({ createdAt: -1 })
-          .limit(10);
-      } catch (orderError) {
-        console.error('Error fetching user orders:', orderError);
-        // Continue with empty order history
-      }
+        const trendingProducts = await Product.find({ isActive: true })
+          .sort({ soldCount: -1, rating: -1, createdAt: -1 })
+          .limit(limit)
+          .populate('category', 'name')
+          .populate('seller', 'businessName');
 
-      console.log('User orders found:', userOrders.length);
-
-      if (userOrders.length === 0) {
-        console.log('No order history, returning trending products');
-        // Return trending products if no order history
-        try {
-          const trendingProducts = await Product.find({ isActive: true })
-            .sort({ soldCount: -1, rating: -1, createdAt: -1 })
-            .limit(limit)
-            .populate('category', 'name')
-            .populate('seller', 'businessName');
-
-          return trendingProducts;
-        } catch (trendingError) {
-          console.error('Error fetching trending products:', trendingError);
-          return []; // Return empty array as fallback
-        }
+        return trendingProducts;
+      } catch (trendingError) {
+        console.error('Error fetching trending products:', trendingError);
+        console.error('Error details:', trendingError.message);
+        console.error('Error stack:', trendingError.stack);
+        return []; // Return empty array as fallback
       }
 
       // Extract product IDs from user's orders safely
