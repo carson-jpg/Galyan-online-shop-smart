@@ -61,10 +61,6 @@ app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/support', require('./routes/support'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/voice', require('./routes/voice'));
-app.use('/api/marketing', require('./routes/marketing'));
-app.use('/api/inventory', require('./routes/inventory'));
-app.use('/api/support', require('./routes/support'));
-app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/pricing', require('./routes/pricing'));
 
 // Health check endpoint
