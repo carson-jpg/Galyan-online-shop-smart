@@ -61,8 +61,16 @@ const getPersonalizedMarketing = async (req, res) => {
           });
         }
       } catch (contentError) {
-        console.error('Error generating marketing content for product:', product.name, contentError);
-        // Continue with other products even if one fails
+        console.error('Error generating marketing content for product:', product.name, contentError.message);
+        // Fallback content to prevent crashes
+        const fallbackContent = `Hi ${user.name}! Check out our amazing ${product.name} - perfect for your needs!`;
+        marketingContent.push({
+          productId: product._id,
+          productName: product.name,
+          content: fallbackContent,
+          image: product.images?.[0],
+          price: product.price
+        });
       }
     }
 
