@@ -41,6 +41,17 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Import all models to ensure they are registered
+require('./models/Category');
+require('./models/Product');
+require('./models/User');
+require('./models/Seller');
+require('./models/Order');
+require('./models/Cart');
+require('./models/Review');
+require('./models/Chat');
+require('./models/FlashSale');
+
 // Database connection
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('MongoDB connected'))
