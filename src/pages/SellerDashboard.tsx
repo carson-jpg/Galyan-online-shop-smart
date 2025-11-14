@@ -145,6 +145,8 @@ const SellerDashboard = () => {
       return response.data.products as Product[];
     },
     enabled: !!user && user?.role === 'seller',
+    retry: 1,
+    retryDelay: 1000,
   });
 
   // Fetch seller orders
@@ -175,6 +177,8 @@ const SellerDashboard = () => {
       return response.data as SellerStats;
     },
     enabled: !!user && user?.role === 'seller',
+    retry: 1,
+    retryDelay: 1000,
   });
 
   // Fetch seller reviews

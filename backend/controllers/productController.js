@@ -103,10 +103,19 @@ const getProducts = async (req, res) => {
     // Filter by seller if seller query parameter is provided
     if (req.query.seller === 'true' && req.user && req.user.role === 'seller') {
       try {
+        console.log('Filtering products for seller user:', req.user._id);
         const seller = await Seller.findOne({ user: req.user._id });
+        console.log('Found seller profile:', seller ? { id: seller._id, isActive: seller.isActive, businessName: seller.businessName } : 'null');
+
         if (seller) {
+          console.log('Applying seller filter for seller ID:', seller._id);
           sellerFilter = { seller: seller._id };
+
+          // Debug: Check how many products this seller has
+          const productCount = await Product.countDocuments({ seller: seller._id });
+          console.log('Seller has', productCount, 'products in database');
         } else {
+          console.log('No seller profile found for user:', req.user._id);
           // If no seller profile found, return empty results
           return res.json({
             products: [],
