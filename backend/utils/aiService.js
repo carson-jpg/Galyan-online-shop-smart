@@ -227,6 +227,57 @@ class AIService {
       return null;
     }
   }
+
+  // Process voice commands for shopping
+  async processVoiceCommand(command, userContext = null) {
+    try {
+      const systemPrompt = `You are an AI voice assistant for Galyan Shop, an e-commerce platform.
+      Analyze the user's voice command and extract:
+      - intent: What the user wants to do (search_products, get_product_info, add_to_cart, get_recommendations, browse_category)
+      - keywords: Key search terms
+      - category: Product category if mentioned
+      - priceRange: Price constraints if mentioned (min/max)
+      - productName: Specific product name if mentioned
+      - quantity: Quantity if mentioned
+
+      Return a JSON object with these fields. Be smart about understanding natural language.`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: command }
+        ],
+        max_tokens: 200,
+        temperature: 0.3,
+      });
+
+      const analysis = JSON.parse(completion.choices[0].message.content);
+
+      // Generate a friendly response
+      const responsePrompt = `Generate a friendly, helpful response to this voice command: "${command}"
+      The user is shopping on Galyan Shop. Keep the response under 50 words and be conversational.`;
+
+      const responseCompletion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: responsePrompt }],
+        max_tokens: 50,
+        temperature: 0.7,
+      });
+
+      return {
+        ...analysis,
+        response: responseCompletion.choices[0].message.content.trim()
+      };
+    } catch (error) {
+      console.error('Voice Command Processing Error:', error);
+      return {
+        intent: 'search_products',
+        keywords: [command],
+        response: "I heard you say: " + command + ". Let me help you find what you're looking for!"
+      };
+    }
+  }
 }
 
 module.exports = new AIService();
