@@ -358,12 +358,8 @@ const getSellerStats = async (req, res) => {
               totalSales += itemTotal;
               totalEarnings += itemTotal - (itemTotal * ((seller.commissionRate || 10) / 100));
 
-              // Update product soldCount
-              try {
-                Product.findByIdAndUpdate(item.product, { $inc: { soldCount: item.quantity } }).exec();
-              } catch (updateError) {
-                console.error('Error updating soldCount for product:', item.product, updateError);
-              }
+              // Note: Removed the soldCount update here as it's not appropriate for stats endpoint
+              // soldCount should only be updated when orders are created, not when stats are viewed
             }
           });
         }

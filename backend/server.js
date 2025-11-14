@@ -60,6 +60,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
+app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/products/:productId/reviews', require('./routes/reviews'));
 app.use('/api/flash-sales', require('./routes/flashSales'));
 app.use('/api/cart', require('./routes/cart'));

@@ -98,21 +98,39 @@ class AIService {
         limit = 5; // Default to 5 if invalid
       }
 
-      // Always return trending products as fallback - simplified approach
-      console.log('Returning trending products');
+      // Get user's order history to understand preferences
+      let userOrders = [];
       try {
-        const trendingProducts = await Product.find({ isActive: true })
-          .sort({ soldCount: -1, rating: -1, createdAt: -1 })
-          .limit(limit)
-          .populate('category', 'name')
-          .populate('seller', 'businessName');
+        userOrders = await Order.find({
+          user: userId,
+          isPaid: true
+        })
+        .populate('orderItems.product', 'category name')
+        .limit(10) // Limit to recent orders for performance
+        .sort({ createdAt: -1 });
+        console.log('Found user orders:', userOrders.length);
+      } catch (orderError) {
+        console.error('Error fetching user orders:', orderError);
+        // Continue with trending products fallback
+      }
 
-        return trendingProducts;
-      } catch (trendingError) {
-        console.error('Error fetching trending products:', trendingError);
-        console.error('Error details:', trendingError.message);
-        console.error('Error stack:', trendingError.stack);
-        return []; // Return empty array as fallback
+      // If no orders found, return trending products
+      if (userOrders.length === 0) {
+        console.log('No user orders found, returning trending products');
+        try {
+          const trendingProducts = await Product.find({ isActive: true })
+            .sort({ soldCount: -1, rating: -1, createdAt: -1 })
+            .limit(limit)
+            .populate('category', 'name')
+            .populate('seller', 'businessName');
+
+          return trendingProducts;
+        } catch (trendingError) {
+          console.error('Error fetching trending products:', trendingError);
+          console.error('Error details:', trendingError.message);
+          console.error('Error stack:', trendingError.stack);
+          return []; // Return empty array as fallback
+        }
       }
 
       // Extract product IDs from user's orders safely
