@@ -660,8 +660,51 @@ const getProductRecommendations = async (req, res) => {
 
     console.log('Recommendations found:', recommendations.length);
 
+    // Generate marketing content for recommendations
+    let marketing = "Discover exciting new deals on Galyan today!";
+    try {
+      // Get user's recent orders for marketing context
+      const recentOrders = await Order.find({ user: userId, isPaid: true })
+        .populate('orderItems.product', 'name category')
+        .sort({ createdAt: -1 })
+        .limit(5);
+
+      // Extract recent purchases
+      const recentPurchases = [];
+      recentOrders.forEach(order => {
+        order.orderItems.forEach(item => {
+          if (item.product) {
+            recentPurchases.push(item.product.name);
+          }
+        });
+      });
+
+      // Get user data
+      const user = await User.findById(userId).select('name');
+
+      if (recommendations.length > 0 && user) {
+        const marketingContent = await aiService.generateMarketingContent(
+          {
+            name: user.name,
+            recentPurchases: recentPurchases.slice(0, 3)
+          },
+          {
+            name: recommendations[0].name,
+            category: recommendations[0].category?.name || 'General'
+          }
+        );
+        if (marketingContent) {
+          marketing = marketingContent;
+        }
+      }
+    } catch (marketingError) {
+      console.error('Marketing content generation error:', marketingError);
+      // Keep default marketing message
+    }
+
     res.json({
       recommendations,
+      marketing,
       total: recommendations.length
     });
   } catch (error) {

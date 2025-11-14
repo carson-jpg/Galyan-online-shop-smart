@@ -74,6 +74,18 @@ const getPersonalizedMarketing = async (req, res) => {
       }
     }
 
+    // Ensure we always have at least one marketing content item
+    if (marketingContent.length === 0 && recommendations.length > 0) {
+      const fallbackContent = `Hi ${user.name}! Discover amazing products tailored just for you!`;
+      marketingContent.push({
+        productId: recommendations[0]._id,
+        productName: recommendations[0].name,
+        content: fallbackContent,
+        image: recommendations[0].images?.[0],
+        price: recommendations[0].price
+      });
+    }
+
     res.json({
       user: {
         name: user.name,

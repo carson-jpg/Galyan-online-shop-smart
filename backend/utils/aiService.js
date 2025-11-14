@@ -384,6 +384,16 @@ class AIService {
       return completion.choices[0].message.content.trim();
     } catch (error) {
       console.error('Marketing Content Generation Error:', error);
+
+      // Check for specific OpenAI errors
+      if (error.status === 429) {
+        console.log('OpenAI rate limit exceeded, using fallback marketing content');
+      } else if (error.status === 401) {
+        console.log('OpenAI authentication failed, using fallback marketing content');
+      } else if (error.status === 402) {
+        console.log('OpenAI quota exceeded, using fallback marketing content');
+      }
+
       // Fallback to static content if API fails
       return this.generateFallbackMarketingContent(userData, productData);
     }
