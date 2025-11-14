@@ -33,7 +33,18 @@ const processVoiceCommand = async (req, res) => {
     }
 
     // Process the voice command using AI
-    const aiResponse = await aiService.processVoiceCommand(command, userContext);
+    let aiResponse;
+    try {
+      aiResponse = await aiService.processVoiceCommand(command, userContext);
+    } catch (aiError) {
+      console.error('AI Voice Command Error:', aiError.message);
+      // Fallback response
+      aiResponse = {
+        intent: 'search_products',
+        keywords: [command],
+        response: "I heard you say: " + command + ". Let me help you find what you're looking for!"
+      };
+    }
 
     if (!aiResponse) {
       return res.status(500).json({

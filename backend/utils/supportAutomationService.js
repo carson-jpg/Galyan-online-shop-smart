@@ -183,18 +183,24 @@ class SupportAutomationService {
       }
 
       // Use AI to generate response based on product info and question
-      const aiResponse = await aiService.generateChatResponse(
-        `Product inquiry: ${question}`,
-        {
-          product: {
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            category: product.category,
-            stock: product.stock
+      let aiResponse;
+      try {
+        aiResponse = await aiService.generateChatResponse(
+          `Product inquiry: ${question}`,
+          {
+            product: {
+              name: product.name,
+              description: product.description,
+              price: product.price,
+              category: product.category,
+              stock: product.stock
+            }
           }
-        }
-      );
+        );
+      } catch (aiError) {
+        console.error('AI Response Error in support automation:', aiError.message);
+        aiResponse = "Thank you for your product inquiry. Our team will get back to you with detailed information about this product.";
+      }
 
       return {
         subject: `Product Inquiry - ${product.name}`,
@@ -276,10 +282,12 @@ class SupportAutomationService {
       };
 
     } catch (error) {
+      console.error('AI Response Error in general inquiry:', error.message);
+      const fallbackResponse = 'Thank you for your inquiry. Our support team will get back to you soon.';
       return {
         subject: 'Support Inquiry',
-        message: 'Thank you for your inquiry. Our support team will get back to you soon.',
-        emailContent: this.generateGeneralInquiryEmail(description)
+        message: fallbackResponse,
+        emailContent: this.generateGeneralInquiryEmail(description, fallbackResponse)
       };
     }
   }

@@ -250,8 +250,22 @@ const sendMessage = async (req, res) => {
           await chat.populate('messages.sender', 'name profilePicture');
         }
       } catch (aiError) {
-        console.error('AI Response Error:', aiError);
-        // Continue without AI response if it fails
+        console.error('AI Response Error:', aiError.message);
+        // Fallback response to prevent crashes
+        const fallbackResponse = "I'm here to help! You can ask me about products, orders, or any questions you have about shopping.";
+        const fallbackMessage = {
+          sender: null, // AI sender
+          content: fallbackResponse,
+          messageType: 'ai_response',
+          timestamp: new Date(),
+          isRead: false
+        };
+
+        chat.messages.push(fallbackMessage);
+        chat.customerUnreadCount += 1;
+        await chat.save();
+        await chat.populate('messages.sender', 'name profilePicture');
+        aiResponse = fallbackResponse;
       }
     }
 
