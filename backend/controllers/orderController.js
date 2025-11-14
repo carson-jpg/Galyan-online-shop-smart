@@ -56,18 +56,29 @@ const createOrder = async (req, res) => {
     });
 
     // Perform fraud detection analysis
-    const fraudAnalysis = await fraudDetectionService.analyzeOrder({
-      ...order.toObject(),
-      customer: req.user._id
-    });
+    try {
+      const fraudAnalysis = await fraudDetectionService.analyzeOrder({
+        ...order.toObject(),
+        customer: req.user._id
+      });
 
-    // Add fraud analysis to order
-    order.fraudAnalysis = fraudAnalysis;
+      // Add fraud analysis to order
+      order.fraudAnalysis = fraudAnalysis;
 
-    // If high risk, flag for manual review
-    if (fraudAnalysis.riskLevel === 'high') {
-      order.status = 'Under Review';
-      order.fraudFlags = fraudAnalysis.flags;
+      // If high risk, flag for manual review
+      if (fraudAnalysis.riskLevel === 'high') {
+        order.status = 'Under Review';
+        order.fraudFlags = fraudAnalysis.flags;
+      }
+    } catch (fraudError) {
+      console.error('Fraud detection error:', fraudError);
+      // Continue with order creation even if fraud detection fails
+      order.fraudAnalysis = {
+        riskLevel: 'unknown',
+        score: 0,
+        flags: ['analysis_failed'],
+        recommendations: ['Manual review recommended due to analysis failure']
+      };
     }
 
     const createdOrder = await order.save();
@@ -400,7 +411,10 @@ const getFraudStats = async (req, res) => {
     res.json(stats);
   } catch (error) {
     console.error('Get fraud stats error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: 'Failed to get fraud statistics',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 };
 

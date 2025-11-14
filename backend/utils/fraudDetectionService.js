@@ -269,9 +269,10 @@ class FraudDetectionService {
     try {
       const startDate = new Date(Date.now() - timeframe * 24 * 60 * 60 * 1000);
 
+      // Limit the number of orders to analyze for performance
       const orders = await Order.find({
         createdAt: { $gte: startDate }
-      }).populate('customer');
+      }).limit(100).populate('customer'); // Limit to prevent performance issues
 
       let highRisk = 0;
       let mediumRisk = 0;
@@ -279,19 +280,24 @@ class FraudDetectionService {
       let totalAnalyzed = 0;
 
       for (const order of orders) {
-        const analysis = await this.analyzeOrder(order);
-        totalAnalyzed++;
+        try {
+          const analysis = await this.analyzeOrder(order);
+          totalAnalyzed++;
 
-        switch (analysis.riskLevel) {
-          case 'high':
-            highRisk++;
-            break;
-          case 'medium':
-            mediumRisk++;
-            break;
-          case 'low':
-            lowRisk++;
-            break;
+          switch (analysis.riskLevel) {
+            case 'high':
+              highRisk++;
+              break;
+            case 'medium':
+              mediumRisk++;
+              break;
+            case 'low':
+              lowRisk++;
+              break;
+          }
+        } catch (analysisError) {
+          console.error('Error analyzing order for stats:', analysisError);
+          // Continue with next order
         }
       }
 
