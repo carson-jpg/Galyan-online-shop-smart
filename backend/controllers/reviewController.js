@@ -18,8 +18,18 @@ const getProductReviews = async (req, res) => {
 
     const count = await Review.countDocuments({ product: req.params.productId });
 
+    // Get product info for context
+    const product = await Product.findById(req.params.productId).select('name seller');
+    if (product) {
+      await product.populate('seller', 'businessName');
+    }
+
     res.json({
       reviews,
+      product: product ? {
+        name: product.name,
+        seller: product.seller?.businessName
+      } : null,
       page,
       pages: Math.ceil(count / pageSize),
       total: count,
@@ -44,6 +54,17 @@ const createReview = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
+    // Check if user has purchased this product (can only review purchased products)
+    const hasPurchased = await Order.findOne({
+      user: userId,
+      'orderItems.product': productId,
+      isPaid: true
+    });
+
+    if (!hasPurchased) {
+      return res.status(403).json({ message: 'You can only review products you have purchased' });
+    }
+
     // Check if user already reviewed this product
     const existingReview = await Review.findOne({ user: userId, product: productId });
     if (existingReview) {
@@ -61,6 +82,10 @@ const createReview = async (req, res) => {
 
     const createdReview = await review.save();
     await createdReview.populate('user', 'name profilePicture');
+
+    // Mark review as verified if user has purchased the product
+    createdReview.isVerified = true;
+    await createdReview.save();
 
     // Update product rating and numReviews
     const allReviews = await Review.find({ product: productId });
@@ -213,8 +238,56 @@ const reportReview = async (req, res) => {
   }
 };
 
+// @desc    Get reviews for seller's products
+// @route   GET /api/reviews/seller
+// @access  Private/Seller
+const getSellerReviews = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Get seller profile
+    const Seller = require('../models/Seller');
+    const seller = await Seller.findOne({ user: userId });
+    if (!seller) {
+      return res.status(404).json({ message: 'Seller profile not found' });
+    }
+
+    // Get all products by this seller
+    const Product = require('../models/Product');
+    const sellerProducts = await Product.find({ seller: seller._id }).select('_id name');
+
+    if (sellerProducts.length === 0) {
+      return res.json({ reviews: [], total: 0 });
+    }
+
+    const productIds = sellerProducts.map(p => p._id);
+
+    // Get all reviews for seller's products
+    const reviews = await Review.find({ product: { $in: productIds } })
+      .populate('user', 'name profilePicture')
+      .populate('product', 'name images')
+      .sort({ createdAt: -1 });
+
+    // Add product name to each review for easier display
+    const reviewsWithProductInfo = reviews.map(review => ({
+      ...review.toObject(),
+      productName: review.product.name,
+      productImage: review.product.images?.[0]
+    }));
+
+    res.json({
+      reviews: reviewsWithProductInfo,
+      total: reviews.length
+    });
+  } catch (error) {
+    console.error('Get seller reviews error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getProductReviews,
+  getSellerReviews,
   createReview,
   updateReview,
   deleteReview,
