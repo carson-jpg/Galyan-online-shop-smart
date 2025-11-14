@@ -610,12 +610,42 @@ const getTopProducts = async (req, res) => {
 // @access  Private
 const getProductRecommendations = async (req, res) => {
   try {
+    // Validate user authentication
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
     const userId = req.user._id;
     const limit = parseInt(req.query.limit) || 5;
 
+    // Validate limit parameter
+    if (limit < 1 || limit > 20) {
+      return res.status(400).json({ message: 'Limit must be between 1 and 20' });
+    }
+
     console.log('Getting recommendations for user:', userId);
 
-    const recommendations = await aiService.getPersonalizedRecommendations(userId, limit);
+    let recommendations = [];
+
+    try {
+      recommendations = await aiService.getPersonalizedRecommendations(userId, limit);
+    } catch (aiError) {
+      console.error('AI Service error:', aiError);
+      // Fallback: Get trending products if AI fails
+      try {
+        const trendingProducts = await Product.find({ isActive: true })
+          .sort({ soldCount: -1, rating: -1, createdAt: -1 })
+          .limit(limit)
+          .populate('category', 'name')
+          .populate('seller', 'businessName');
+
+        recommendations = trendingProducts;
+        console.log('Using trending products as fallback recommendations');
+      } catch (fallbackError) {
+        console.error('Fallback recommendations error:', fallbackError);
+        recommendations = [];
+      }
+    }
 
     console.log('Recommendations found:', recommendations.length);
 

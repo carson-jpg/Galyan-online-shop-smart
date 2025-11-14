@@ -52,36 +52,133 @@ class AIService {
   // Generate product recommendations based on user behavior
   async getPersonalizedRecommendations(userId, limit = 5) {
     try {
-      // Get user's order history and viewed products
-      const userOrders = await Order.find({ customer: userId })
-        .populate('orderItems.product')
-        .sort({ createdAt: -1 })
-        .limit(10);
+      console.log('Getting personalized recommendations for user:', userId);
 
-      const purchasedCategories = [];
-      const purchasedProducts = [];
+      // Validate inputs
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
 
-      userOrders.forEach(order => {
-        order.orderItems.forEach(item => {
-          if (item.product) {
-            purchasedCategories.push(item.product.category);
-            purchasedProducts.push(item.product._id);
+      if (limit < 1 || limit > 20) {
+        limit = 5; // Default to 5 if invalid
+      }
+
+      // Get user's order history with error handling
+      let userOrders = [];
+      try {
+        userOrders = await Order.find({ user: userId, isPaid: true })
+          .populate('orderItems.product')
+          .sort({ createdAt: -1 })
+          .limit(10);
+      } catch (orderError) {
+        console.error('Error fetching user orders:', orderError);
+        // Continue with empty order history
+      }
+
+      console.log('User orders found:', userOrders.length);
+
+      if (userOrders.length === 0) {
+        console.log('No order history, returning trending products');
+        // Return trending products if no order history
+        try {
+          const trendingProducts = await Product.find({ isActive: true })
+            .sort({ soldCount: -1, rating: -1, createdAt: -1 })
+            .limit(limit)
+            .populate('category', 'name')
+            .populate('seller', 'businessName');
+
+          return trendingProducts;
+        } catch (trendingError) {
+          console.error('Error fetching trending products:', trendingError);
+          return []; // Return empty array as fallback
+        }
+      }
+
+      // Extract product IDs from user's orders safely
+      const orderedProductIds = [];
+      try {
+        userOrders.forEach(order => {
+          if (order && order.orderItems && Array.isArray(order.orderItems)) {
+            order.orderItems.forEach(item => {
+              if (item && item.product && item.product._id) {
+                orderedProductIds.push(item.product._id);
+              }
+            });
           }
         });
-      });
+      } catch (extractError) {
+        console.error('Error extracting product IDs:', extractError);
+      }
 
-      // Find similar products
-      const recommendations = await Product.find({
-        _id: { $nin: purchasedProducts },
-        category: { $in: purchasedCategories },
-        isActive: true
-      })
-      .limit(limit)
-      .sort({ rating: -1, soldCount: -1 });
+      console.log('Ordered product IDs:', orderedProductIds.length);
 
-      return recommendations;
+      // Get categories from user's purchased products safely
+      const userCategories = [];
+      try {
+        userOrders.forEach(order => {
+          if (order && order.orderItems && Array.isArray(order.orderItems)) {
+            order.orderItems.forEach(item => {
+              if (item && item.product && item.product.category) {
+                userCategories.push(item.product.category);
+              }
+            });
+          }
+        });
+      } catch (categoryError) {
+        console.error('Error extracting categories:', categoryError);
+      }
+
+      const uniqueCategories = [...new Set(userCategories)];
+      console.log('User categories:', uniqueCategories.length);
+
+      // Find similar products based on categories and exclude already purchased
+      let recommendations = [];
+      try {
+        if (uniqueCategories.length > 0) {
+          recommendations = await Product.find({
+            isActive: true,
+            category: { $in: uniqueCategories },
+            _id: { $nin: orderedProductIds }
+          })
+            .populate('category', 'name')
+            .populate('seller', 'businessName')
+            .sort({ rating: -1, soldCount: -1, createdAt: -1 })
+            .limit(limit * 2); // Get more to filter
+        }
+      } catch (recommendationError) {
+        console.error('Error fetching category-based recommendations:', recommendationError);
+        recommendations = [];
+      }
+
+      console.log('Initial recommendations:', recommendations.length);
+
+      // If not enough recommendations, add trending products
+      if (recommendations.length < limit) {
+        try {
+          const additionalProducts = await Product.find({
+            isActive: true,
+            _id: { $nin: [...orderedProductIds, ...recommendations.map(p => p._id)] }
+          })
+            .populate('category', 'name')
+            .populate('seller', 'businessName')
+            .sort({ soldCount: -1, rating: -1, createdAt: -1 })
+            .limit(limit - recommendations.length);
+
+          recommendations = [...recommendations, ...additionalProducts];
+        } catch (additionalError) {
+          console.error('Error fetching additional products:', additionalError);
+          // Continue with existing recommendations
+        }
+      }
+
+      // Return limited results
+      const finalRecommendations = recommendations.slice(0, limit);
+      console.log('Final recommendations:', finalRecommendations.length);
+
+      return finalRecommendations;
     } catch (error) {
-      console.error('Personalized Recommendations Error:', error);
+      console.error('Error getting personalized recommendations:', error);
+      // Return empty array instead of throwing error to prevent 500 responses
       return [];
     }
   }

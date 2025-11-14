@@ -254,27 +254,61 @@ const updateOrderStatus = async (req, res) => {
 // @access  Private/Seller
 const getSellerStats = async (req, res) => {
   try {
+    // Validate user authentication
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
     console.log('Getting seller stats for user:', req.user._id);
 
+    // Validate seller exists and is active
     const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller || !seller.isActive) {
-      console.log('Seller not found or not active');
+    if (!seller) {
+      console.log('Seller profile not found');
+      return res.status(404).json({ message: 'Seller profile not found' });
+    }
+
+    if (!seller.isActive) {
+      console.log('Seller account not approved');
       return res.status(403).json({ message: 'Seller account not approved' });
     }
 
     console.log('Found seller:', seller._id);
 
     // Get all products by this seller
-    const sellerProducts = await Product.find({ seller: seller._id }).select('_id');
-    const productIds = sellerProducts.map(p => p._id);
+    let sellerProducts = [];
+    try {
+      sellerProducts = await Product.find({ seller: seller._id }).select('_id');
+    } catch (productError) {
+      console.error('Error fetching seller products:', productError);
+      return res.status(500).json({ message: 'Error fetching seller products' });
+    }
 
+    const productIds = sellerProducts.map(p => p._id);
     console.log('Seller products:', productIds.length);
 
+    // If no products, return zero stats
+    if (productIds.length === 0) {
+      console.log('No products found for seller');
+      return res.json({
+        totalProducts: 0,
+        totalOrders: 0,
+        totalSales: 0,
+        totalEarnings: 0
+      });
+    }
+
     // Get orders containing seller's products
-    const orders = await Order.find({
-      'orderItems.product': { $in: productIds },
-      isPaid: true
-    }).populate('orderItems.product');
+    let orders = [];
+    try {
+      orders = await Order.find({
+        'orderItems.product': { $in: productIds },
+        isPaid: true
+      }).populate('orderItems.product');
+    } catch (orderError) {
+      console.error('Error fetching orders:', orderError);
+      return res.status(500).json({ message: 'Error fetching order data' });
+    }
 
     console.log('Orders found:', orders.length);
 
@@ -282,15 +316,24 @@ const getSellerStats = async (req, res) => {
     let totalEarnings = 0;
     const totalOrders = orders.length;
 
-    orders.forEach(order => {
-      order.orderItems.forEach(item => {
-        if (productIds.some(pid => pid.toString() === item.product._id.toString())) {
-          const itemTotal = item.price * item.quantity;
-          totalSales += itemTotal;
-          totalEarnings += itemTotal - (itemTotal * (seller.commissionRate / 100));
+    // Calculate stats safely
+    try {
+      orders.forEach(order => {
+        if (order && order.orderItems && Array.isArray(order.orderItems)) {
+          order.orderItems.forEach(item => {
+            if (item && item.product && item.product._id &&
+                productIds.some(pid => pid.toString() === item.product._id.toString())) {
+              const itemTotal = (item.price || 0) * (item.quantity || 0);
+              totalSales += itemTotal;
+              totalEarnings += itemTotal - (itemTotal * ((seller.commissionRate || 10) / 100));
+            }
+          });
         }
       });
-    });
+    } catch (calcError) {
+      console.error('Error calculating stats:', calcError);
+      return res.status(500).json({ message: 'Error calculating seller statistics' });
+    }
 
     console.log('Stats calculated:', { totalSales, totalEarnings, totalOrders });
 
