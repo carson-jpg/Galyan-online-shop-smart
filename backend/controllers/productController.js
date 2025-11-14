@@ -700,11 +700,21 @@ const getProductRecommendations = async (req, res) => {
       // Keep default marketing message
     }
 
-    res.json({
-      recommendations,
-      marketing,
-      total: recommendations.length
-    });
+    try {
+      res.json({
+        recommendations,
+        marketing,
+        total: recommendations.length
+      });
+    } catch (jsonError) {
+      console.error('Error serializing recommendations response:', jsonError);
+      res.status(500).json({
+        message: 'Failed to serialize recommendations',
+        recommendations: [],
+        marketing: "Discover exciting new deals on Galyan today!",
+        total: 0
+      });
+    }
   } catch (error) {
     console.error('Get recommendations error:', error);
     console.error('Error stack:', error.stack);
