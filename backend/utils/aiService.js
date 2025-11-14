@@ -12,6 +12,12 @@ class AIService {
   // Generate AI responses for customer support chat
   async generateChatResponse(message, context = {}) {
     try {
+      // Check if OpenAI API key is available
+      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_openai_api_key_here') {
+        console.log('OpenAI API key not configured, using fallback chat response');
+        return this.generateFallbackChatResponse(message, context);
+      }
+
       const systemPrompt = `You are an AI assistant for Galyan Shop, a comprehensive e-commerce platform.
       You help customers with product inquiries, order support, and general shopping assistance.
 
@@ -45,8 +51,37 @@ class AIService {
       return completion.choices[0].message.content.trim();
     } catch (error) {
       console.error('AI Chat Response Error:', error);
-      return "I'm sorry, I'm having trouble responding right now. Please try again or contact our support team.";
+      return this.generateFallbackChatResponse(message, context);
     }
+  }
+
+  // Fallback chat responses when OpenAI is not available
+  generateFallbackChatResponse(message, context = {}) {
+    const lowerMessage = message.toLowerCase();
+
+    // Simple keyword-based responses
+    if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
+      return "For pricing information, please check the product page or contact our sales team. We offer competitive prices and occasional discounts!";
+    }
+
+    if (lowerMessage.includes('order') || lowerMessage.includes('track')) {
+      return "You can track your orders in the 'Orders' section of your account. If you need help with a specific order, please provide the order number.";
+    }
+
+    if (lowerMessage.includes('return') || lowerMessage.includes('refund')) {
+      return "We offer a 30-day return policy for most items. Please check our returns page for detailed information or contact customer service.";
+    }
+
+    if (lowerMessage.includes('shipping') || lowerMessage.includes('delivery')) {
+      return "We offer fast shipping across Kenya. Delivery typically takes 3-5 business days. Express options are available for urgent orders.";
+    }
+
+    if (lowerMessage.includes('payment') || lowerMessage.includes('pay')) {
+      return "We accept M-Pesa, card payments, and other secure payment methods. All transactions are encrypted and secure.";
+    }
+
+    // Default helpful response
+    return "I'd be happy to help you with your shopping needs! You can ask me about products, orders, shipping, returns, or any other questions you have.";
   }
 
   // Generate product recommendations based on user behavior
@@ -186,6 +221,12 @@ class AIService {
   // Smart search with AI-powered query understanding
   async smartSearch(query, filters = {}) {
     try {
+      // Check if OpenAI API key is available
+      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_openai_api_key_here') {
+        console.log('OpenAI API key not configured, using fallback search');
+        return this.fallbackSearch(query, filters);
+      }
+
       // Use AI to understand the search intent
       const searchAnalysis = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
@@ -235,21 +276,33 @@ class AIService {
       };
     } catch (error) {
       console.error('Smart Search Error:', error);
-      // Fallback to basic search
-      const products = await Product.find({
-        isActive: true,
-        $or: [
-          { name: { $regex: query, $options: 'i' } },
-          { description: { $regex: query, $options: 'i' } }
-        ]
-      }).limit(20);
-
-      return {
-        products,
-        analysis: { keywords: [query] },
-        total: products.length
-      };
+      return this.fallbackSearch(query, filters);
     }
+  }
+
+  // Fallback search when OpenAI is not available
+  async fallbackSearch(query, filters = {}) {
+    const searchQuery = {
+      isActive: true,
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+        { tags: { $regex: query, $options: 'i' } }
+      ]
+    };
+
+    // Apply additional filters
+    Object.assign(searchQuery, filters);
+
+    const products = await Product.find(searchQuery)
+      .sort({ soldCount: -1, rating: -1 })
+      .limit(50);
+
+    return {
+      products,
+      analysis: { keywords: [query], intent: 'general_search' },
+      total: products.length
+    };
   }
 
   // Generate product descriptions
@@ -303,6 +356,12 @@ class AIService {
   // Generate personalized marketing content
   async generateMarketingContent(userData, productData) {
     try {
+      // Check if OpenAI API key is available
+      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_openai_api_key_here') {
+        console.log('OpenAI API key not configured, using fallback marketing content');
+        return this.generateFallbackMarketingContent(userData, productData);
+      }
+
       const prompt = `Create a personalized marketing message for:
       Customer: ${userData.name}
       Recent purchases: ${userData.recentPurchases?.join(', ') || 'None'}
@@ -321,8 +380,21 @@ class AIService {
       return completion.choices[0].message.content.trim();
     } catch (error) {
       console.error('Marketing Content Generation Error:', error);
-      return null;
+      // Fallback to static content if API fails
+      return this.generateFallbackMarketingContent(userData, productData);
     }
+  }
+
+  // Fallback marketing content when OpenAI is not available
+  generateFallbackMarketingContent(userData, productData) {
+    const templates = [
+      `Hi ${userData.name}! Based on your interest in similar products, we think you'll love our ${productData.name}. It's perfect for your needs and comes with great value.`,
+      `Hello ${userData.name}! Discover the ${productData.name} - a fantastic ${productData.category} option that matches your preferences. Don't miss out on this amazing deal!`,
+      `${userData.name}, we noticed you're interested in quality products. The ${productData.name} offers exceptional features at an unbeatable price. Check it out today!`,
+      `Personal recommendation for ${userData.name}: The ${productData.name} is exactly what you've been looking for. High quality, great reviews, and ready to ship!`
+    ];
+
+    return templates[Math.floor(Math.random() * templates.length)];
   }
 
   // Process voice commands for shopping

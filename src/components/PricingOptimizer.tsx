@@ -22,7 +22,7 @@ const PricingOptimizer = ({ productId }: { productId?: string }) => {
   const { data: pricingData, isLoading, refetch } = useQuery({
     queryKey: ['pricing-optimization', productId],
     queryFn: async () => {
-      const response = await api.get(`/products/pricing-analysis/${productId || ''}`);
+      const response = await api.get(`/pricing/analysis/${productId || ''}`);
       return response.data;
     },
     enabled: !!productId || user?.role === 'admin',
@@ -33,7 +33,7 @@ const PricingOptimizer = ({ productId }: { productId?: string }) => {
 
     setIsOptimizing(true);
     try {
-      const response = await api.post(`/products/optimize-price/${productId}`, {
+      const response = await api.post(`/pricing/optimize/${productId}`, {
         customPrice: customPrice ? parseFloat(customPrice) : null
       });
       await refetch();

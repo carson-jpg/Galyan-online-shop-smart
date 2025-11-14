@@ -39,25 +39,30 @@ const getPersonalizedMarketing = async (req, res) => {
     const marketingContent = [];
 
     for (const product of recommendations.slice(0, 2)) {
-      const content = await aiService.generateMarketingContent(
-        {
-          name: user.name,
-          recentPurchases: recentPurchases.slice(0, 3)
-        },
-        {
-          name: product.name,
-          category: product.category?.name || 'General'
-        }
-      );
+      try {
+        const content = await aiService.generateMarketingContent(
+          {
+            name: user.name,
+            recentPurchases: recentPurchases.slice(0, 3)
+          },
+          {
+            name: product.name,
+            category: product.category?.name || 'General'
+          }
+        );
 
-      if (content) {
-        marketingContent.push({
-          productId: product._id,
-          productName: product.name,
-          content,
-          image: product.images?.[0],
-          price: product.price
-        });
+        if (content) {
+          marketingContent.push({
+            productId: product._id,
+            productName: product.name,
+            content,
+            image: product.images?.[0],
+            price: product.price
+          });
+        }
+      } catch (contentError) {
+        console.error('Error generating marketing content for product:', product.name, contentError);
+        // Continue with other products even if one fails
       }
     }
 
