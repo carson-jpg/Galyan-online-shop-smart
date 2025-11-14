@@ -385,6 +385,7 @@ const getSellerStats = async (req, res) => {
     console.error('Get seller stats error:', error);
     console.error('Error stack:', error.stack);
     console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
     res.status(500).json({
       message: 'Failed to get seller stats',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'

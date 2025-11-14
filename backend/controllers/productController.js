@@ -643,6 +643,8 @@ const getProductRecommendations = async (req, res) => {
         console.log('Using trending products as fallback recommendations');
       } catch (fallbackError) {
         console.error('Fallback recommendations error:', fallbackError);
+        console.error('Fallback error details:', fallbackError.message);
+        console.error('Fallback error stack:', fallbackError.stack);
         recommendations = [];
       }
     }
