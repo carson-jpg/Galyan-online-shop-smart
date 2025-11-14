@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/api';
-import { Upload, X, Plus, Package, ShoppingCart, DollarSign, TrendingUp, BarChart3, Settings, Store, Zap } from 'lucide-react';
+import { Upload, X, Plus, Package, ShoppingCart, DollarSign, TrendingUp, BarChart3, Settings, Store, Zap, Star, MessageSquare } from 'lucide-react';
 import PricingOptimizer from '@/components/PricingOptimizer';
 
 // Helper functions for attribute parsing
@@ -86,6 +86,21 @@ interface SellerStats {
   totalSales: number;
 }
 
+interface Review {
+  _id: string;
+  rating: number;
+  title: string;
+  comment: string;
+  isVerified: boolean;
+  user: {
+    name: string;
+    profilePicture?: string;
+  };
+  productName: string;
+  productImage?: string;
+  createdAt: string;
+}
+
 const SellerDashboard = () => {
   const { user, logout } = useAuth();
   const queryClient = useQueryClient();
@@ -158,6 +173,16 @@ const SellerDashboard = () => {
     queryFn: async () => {
       const response = await api.get('/orders/seller-stats');
       return response.data as SellerStats;
+    },
+    enabled: !!user && user?.role === 'seller',
+  });
+
+  // Fetch seller reviews
+  const { data: sellerReviews } = useQuery({
+    queryKey: ['sellerReviews'],
+    queryFn: async () => {
+      const response = await api.get('/reviews/seller');
+      return response.data as { reviews: Review[]; total: number };
     },
     enabled: !!user && user?.role === 'seller',
   });
@@ -517,6 +542,14 @@ const SellerDashboard = () => {
           >
             <DollarSign className="h-4 w-4 mr-2" />
             AI Pricing
+          </Button>
+          <Button
+            variant={activeTab === 'reviews' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('reviews')}
+            className="flex-1 min-w-0"
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Reviews
           </Button>
           <Button
             variant={activeTab === 'settings' ? 'default' : 'ghost'}
@@ -882,9 +915,21 @@ const SellerDashboard = () => {
                           {order.isDelivered ? 'Delivered' : 'Pending'}
                         </Badge>
                         <Badge variant="outline">{order.status}</Badge>
-                        <Button variant="outline" size="sm" onClick={() => handleUpdateOrderStatus(order._id, order.status)}>
-                          Update Status
-                        </Button>
+                        <Select
+                          value={order.status}
+                          onValueChange={(value) => updateOrderStatusMutation.mutate({ orderId: order._id, status: value })}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Pending">Pending</SelectItem>
+                            <SelectItem value="Processing">Processing</SelectItem>
+                            <SelectItem value="Shipped">Shipped</SelectItem>
+                            <SelectItem value="Delivered">Delivered</SelectItem>
+                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   ))}
@@ -1045,6 +1090,79 @@ const SellerDashboard = () => {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Reviews</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                View all customer reviews for your products
+              </p>
+            </CardHeader>
+            <CardContent>
+              {!sellerReviews?.reviews || sellerReviews.reviews.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
+                  <p className="text-gray-600">Customer reviews for your products will appear here.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {sellerReviews.reviews.map((review) => (
+                    <div key={review._id} className="border rounded-lg p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={review.user.profilePicture || "/placeholder.svg"}
+                            alt={review.user.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                          <div>
+                            <p className="font-medium">{review.user.name}</p>
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-4 w-4 ${
+                                      i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-sm text-gray-600">
+                                {new Date(review.createdAt).toLocaleDateString()}
+                              </span>
+                              {review.isVerified && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Verified Purchase
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={review.productImage || "/placeholder.svg"}
+                            alt={review.productName}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                          <span className="text-sm font-medium">{review.productName}</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="font-medium">{review.title}</h4>
+                        <p className="text-gray-700">{review.comment}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* Individual Product Pricing Analysis */}
