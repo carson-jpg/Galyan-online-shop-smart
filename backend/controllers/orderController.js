@@ -164,8 +164,8 @@ const getOrders = async (req, res) => {
 
         // Filter orders that contain seller's products
         query = {
-          'orderItems.product': { $in: productIds }
-          // Removed isPaid filter so sellers can see all orders for their products
+          'orderItems.product': { $in: productIds },
+          isPaid: true // Only show paid orders for sellers
         };
 
         console.log('Query for seller orders:', query);
@@ -330,12 +330,12 @@ const getSellerStats = async (req, res) => {
       });
     }
 
-    // Get orders containing seller's products (include both paid and unpaid for dashboard visibility)
+    // Get orders containing seller's products
     let orders = [];
     try {
       orders = await Order.find({
-        'orderItems.product': { $in: productIds }
-        // Removed isPaid: true filter so sellers can see all their orders
+        'orderItems.product': { $in: productIds },
+        isPaid: true // Only count paid orders for stats
       });
     } catch (orderError) {
       console.error('Error fetching orders:', orderError);
