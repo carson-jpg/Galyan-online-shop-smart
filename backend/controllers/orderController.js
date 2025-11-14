@@ -254,20 +254,29 @@ const updateOrderStatus = async (req, res) => {
 // @access  Private/Seller
 const getSellerStats = async (req, res) => {
   try {
+    console.log('Getting seller stats for user:', req.user._id);
+
     const seller = await Seller.findOne({ user: req.user._id });
     if (!seller || !seller.isActive) {
+      console.log('Seller not found or not active');
       return res.status(403).json({ message: 'Seller account not approved' });
     }
+
+    console.log('Found seller:', seller._id);
 
     // Get all products by this seller
     const sellerProducts = await Product.find({ seller: seller._id }).select('_id');
     const productIds = sellerProducts.map(p => p._id);
+
+    console.log('Seller products:', productIds.length);
 
     // Get orders containing seller's products
     const orders = await Order.find({
       'orderItems.product': { $in: productIds },
       isPaid: true
     }).populate('orderItems.product');
+
+    console.log('Orders found:', orders.length);
 
     let totalSales = 0;
     let totalEarnings = 0;
@@ -283,6 +292,8 @@ const getSellerStats = async (req, res) => {
       });
     });
 
+    console.log('Stats calculated:', { totalSales, totalEarnings, totalOrders });
+
     res.json({
       totalProducts: sellerProducts.length,
       totalOrders,
@@ -290,7 +301,11 @@ const getSellerStats = async (req, res) => {
       totalEarnings
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Get seller stats error:', error);
+    res.status(500).json({
+      message: 'Failed to get seller stats',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 };
 

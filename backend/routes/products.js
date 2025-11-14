@@ -25,7 +25,7 @@ router.get('/category/:categoryId', getProductsByCategory);
 router.get('/:id', getProductById);
 
 // Protected routes
-router.get('/recommendations/personalized', protect, getProductRecommendations);
+router.get('/recommendations', protect, getProductRecommendations);
 
 // Categories route
 router.get('/api/categories', async (req, res) => {

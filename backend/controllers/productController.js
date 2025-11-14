@@ -613,7 +613,11 @@ const getProductRecommendations = async (req, res) => {
     const userId = req.user._id;
     const limit = parseInt(req.query.limit) || 5;
 
+    console.log('Getting recommendations for user:', userId);
+
     const recommendations = await aiService.getPersonalizedRecommendations(userId, limit);
+
+    console.log('Recommendations found:', recommendations.length);
 
     res.json({
       recommendations,
@@ -621,7 +625,10 @@ const getProductRecommendations = async (req, res) => {
     });
   } catch (error) {
     console.error('Get recommendations error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: 'Failed to get recommendations',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 };
 
