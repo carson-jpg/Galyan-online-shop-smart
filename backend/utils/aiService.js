@@ -177,7 +177,7 @@ class AIService {
           })
             .populate('category', 'name')
             .populate('seller', 'businessName')
-            .sort({ rating: -1, soldCount: -1, createdAt: -1 })
+            .sort({ rating: -1, numReviews: -1, createdAt: -1 })
             .limit(limit * 2); // Get more to filter
         }
       } catch (recommendationError) {
