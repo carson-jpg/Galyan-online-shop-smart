@@ -430,7 +430,12 @@ const updateSellerProfile = async (req, res) => {
 // @access  Public
 const getSellerProfileById = async (req, res) => {
   try {
-    const seller = await Seller.findById(req.params.sellerId).populate('user', 'name email');
+    console.log('Getting seller profile for user ID:', req.params.sellerId);
+
+    // The sellerId parameter is actually the user ID from the URL
+    const seller = await Seller.findOne({ user: req.params.sellerId }).populate('user', 'name email');
+
+    console.log('Found seller:', seller ? seller._id : 'null');
 
     if (seller && seller.isActive) {
       res.json(seller);
@@ -438,6 +443,7 @@ const getSellerProfileById = async (req, res) => {
       res.status(404).json({ message: 'Seller not found' });
     }
   } catch (error) {
+    console.error('Get seller profile by ID error:', error);
     res.status(500).json({ message: error.message });
   }
 };

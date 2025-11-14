@@ -136,22 +136,38 @@ const getOrders = async (req, res) => {
   try {
     let query = {};
 
+    console.log('Getting orders for user:', req.user._id, 'role:', req.user.role);
+
     // If seller, filter orders to only show orders for their products
     if (req.user.role === 'seller') {
       try {
         const seller = await Seller.findOne({ user: req.user._id });
         if (!seller || !seller.isActive) {
+          console.log('Seller not found or not active');
           return res.status(403).json({ message: 'Seller account not approved' });
         }
+
+        console.log('Found seller:', seller._id);
 
         // Get all products by this seller
         const sellerProducts = await Product.find({ seller: seller._id }).select('_id');
         const productIds = sellerProducts.map(p => p._id);
 
+        console.log('Seller products count:', productIds.length);
+        console.log('Product IDs:', productIds);
+
+        if (productIds.length === 0) {
+          console.log('No products found for seller, returning empty array');
+          return res.json([]);
+        }
+
         // Filter orders that contain seller's products
         query = {
-          'orderItems.product': { $in: productIds }
+          'orderItems.product': { $in: productIds },
+          isPaid: true // Only show paid orders
         };
+
+        console.log('Query for seller orders:', query);
       } catch (sellerError) {
         console.error('Seller lookup error:', sellerError);
         return res.status(500).json({ message: 'Error processing seller orders' });
@@ -161,9 +177,24 @@ const getOrders = async (req, res) => {
     const orders = await Order.find(query)
       .populate('user', 'id name email')
       .sort({ createdAt: -1 });
+
+    console.log('Found orders count:', orders.length);
+
+    // For sellers, also populate order items to show product details
+    if (req.user.role === 'seller') {
+      await Order.populate(orders, {
+        path: 'orderItems.product',
+        select: 'name images price'
+      });
+    }
+
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Get orders error:', error);
+    res.status(500).json({
+      message: 'Failed to get orders',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 };
 
