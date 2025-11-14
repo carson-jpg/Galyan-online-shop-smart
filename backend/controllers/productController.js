@@ -692,10 +692,8 @@ const getProductRecommendations = async (req, res) => {
             name: recommendations[0].name,
             category: recommendations[0].category?.name || 'General'
           }
-        );
-        if (marketingContent) {
-          marketing = marketingContent;
-        }
+        ) || "";
+        marketing = marketingContent;
       }
     } catch (marketingError) {
       console.error('Marketing content generation error:', marketingError);

@@ -363,7 +363,7 @@ class AIService {
       // Check if OpenAI API key is available
       if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_openai_api_key_here') {
         console.log('OpenAI API key not configured, using fallback marketing content');
-        return this.generateFallbackMarketingContent(userData, productData);
+        return "Discover exciting new deals on Galyan today!";
       }
 
       const prompt = `Create a personalized marketing message for:
@@ -375,27 +375,19 @@ class AIService {
       Make it personalized and compelling, under 100 words.`;
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 100,
         temperature: 0.8,
       });
 
       return completion.choices[0].message.content.trim();
-    } catch (error) {
-      console.error('Marketing Content Generation Error:', error);
+    } catch (err) {
+      console.error("AI ERROR:", err.message);
 
-      // Check for specific OpenAI errors
-      if (error.status === 429) {
-        console.log('OpenAI rate limit exceeded, using fallback marketing content');
-      } else if (error.status === 401) {
-        console.log('OpenAI authentication failed, using fallback marketing content');
-      } else if (error.status === 402) {
-        console.log('OpenAI quota exceeded, using fallback marketing content');
-      }
-
-      // Fallback to static content if API fails
-      return this.generateFallbackMarketingContent(userData, productData);
+      // *** IMPORTANT ***
+      // Prevent backend from crashing
+      return "Discover exciting new deals on Galyan today!";
     }
   }
 

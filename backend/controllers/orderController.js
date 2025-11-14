@@ -79,6 +79,7 @@ const createOrder = async (req, res) => {
         flags: ['analysis_failed'],
         recommendations: ['Manual review recommended due to analysis failure']
       };
+      // Don't fail order creation - proceed normally
     }
 
     const createdOrder = await order.save();
@@ -418,6 +419,38 @@ const getFraudStats = async (req, res) => {
   }
 };
 
+// @desc    Get fraud detection statistics with fallback
+// @route   GET /api/orders/fraud-stats-safe
+// @access  Private/Admin
+const getFraudStatsSafe = async (req, res) => {
+  try {
+    const timeframe = parseInt(req.query.days) || 30;
+    let stats = {
+      totalOrders: 0,
+      analyzedOrders: 0,
+      highRiskOrders: 0,
+      mediumRiskOrders: 0,
+      lowRiskOrders: 0,
+      fraudRate: 0
+    };
+
+    try {
+      stats = await fraudDetectionService.getFraudStatistics(timeframe);
+    } catch (fraudError) {
+      console.error('Fraud detection service error:', fraudError);
+      // Return default stats instead of failing
+    }
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Get fraud stats safe error:', error);
+    res.status(500).json({
+      message: 'Failed to get fraud statistics',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 // @desc    Review and approve/reject order under fraud review
 // @route   PUT /api/orders/:id/fraud-review
 // @access  Private/Admin
@@ -467,5 +500,6 @@ module.exports = {
   updateOrderStatus,
   getSellerStats,
   getFraudStats,
+  getFraudStatsSafe,
   reviewFraudOrder,
 };

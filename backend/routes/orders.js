@@ -8,6 +8,7 @@ const {
   updateOrderStatus,
   getSellerStats,
   getFraudStats,
+  getFraudStatsSafe,
   reviewFraudOrder,
 } = require('../controllers/orderController');
 const { protect, admin, seller } = require('../middleware/auth');
@@ -27,6 +28,7 @@ router.put('/admin/orders/:id/status', protect, admin, updateOrderStatus);
 
 // Fraud detection routes
 router.get('/fraud-stats', protect, admin, getFraudStats);
+router.get('/fraud-stats-safe', protect, admin, getFraudStatsSafe);
 router.put('/:id/fraud-review', protect, admin, reviewFraudOrder);
 
 module.exports = router;
