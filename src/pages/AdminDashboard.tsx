@@ -481,16 +481,16 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Fraud Alert - Show at top if there are active alerts */}
-        <FraudAlert />
+        {/* <FraudAlert /> */}
 
         {/* AI Inventory Insights */}
-        <InventoryInsights />
+        {/* <InventoryInsights /> */}
 
         {/* AI Support Automation */}
-        <SupportAutomation />
+        {/* <SupportAutomation /> */}
 
-        {/* AI Analytics Dashboard */}
-        <AIAnalyticsDashboard />
+        {/* AI Analytics Dashboard - Temporarily disabled due to infinite re-render issue */}
+        {/* <AIAnalyticsDashboard /> */}
 
         {/* Welcome Section */}
         <div className="mb-8">
