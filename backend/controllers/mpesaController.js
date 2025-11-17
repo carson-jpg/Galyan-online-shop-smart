@@ -10,8 +10,8 @@ const generateAccessToken = async () => {
   ).toString('base64');
 
   try {
-    // Use production API for production credentials
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.MPESA_SHORTCODE !== '174379';
+    // Use production API only when NODE_ENV is production
+    const isProduction = process.env.NODE_ENV === 'production';
     const baseUrl = isProduction
       ? 'https://api.safaricom.co.ke'
       : 'https://sandbox.safaricom.co.ke';
@@ -57,7 +57,7 @@ const initiateSTKPush = async (req, res) => {
     const accessToken = await generateAccessToken();
 
     // Determine base URL (same logic as in generateAccessToken)
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.MPESA_SHORTCODE !== '174379';
+    const isProduction = process.env.NODE_ENV === 'production';
     const baseUrl = isProduction
       ? 'https://api.safaricom.co.ke'
       : 'https://sandbox.safaricom.co.ke';
@@ -180,7 +180,7 @@ const checkPaymentStatus = async (req, res) => {
     const accessToken = await generateAccessToken();
 
     // Determine base URL (same logic as in generateAccessToken)
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.MPESA_SHORTCODE !== '174379';
+    const isProduction = process.env.NODE_ENV === 'production';
     const baseUrl = isProduction
       ? 'https://api.safaricom.co.ke'
       : 'https://sandbox.safaricom.co.ke';
