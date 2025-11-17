@@ -56,6 +56,12 @@ const initiateSTKPush = async (req, res) => {
 
     const accessToken = await generateAccessToken();
 
+    // Determine base URL (same logic as in generateAccessToken)
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.MPESA_SHORTCODE !== '174379';
+    const baseUrl = isProduction
+      ? 'https://api.safaricom.co.ke'
+      : 'https://sandbox.safaricom.co.ke';
+
     const timestamp = new Date()
       .toISOString()
       .replace(/[^0-9]/g, '')
@@ -172,6 +178,12 @@ const checkPaymentStatus = async (req, res) => {
     const { checkoutRequestId } = req.params;
 
     const accessToken = await generateAccessToken();
+
+    // Determine base URL (same logic as in generateAccessToken)
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.MPESA_SHORTCODE !== '174379';
+    const baseUrl = isProduction
+      ? 'https://api.safaricom.co.ke'
+      : 'https://sandbox.safaricom.co.ke';
 
     const timestamp = new Date()
       .toISOString()
