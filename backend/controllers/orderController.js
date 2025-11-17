@@ -5,6 +5,7 @@ const Seller = require('../models/Seller');
 const User = require('../models/User');
 const emailService = require('../utils/emailService');
 const fraudDetectionService = require('../utils/fraudDetectionService');
+const shippingService = require('../utils/shippingService');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -37,6 +38,9 @@ const createOrder = async (req, res) => {
       }
     }
 
+    // Calculate shipping cost based on zone
+    const shippingCalculation = shippingService.calculateShippingCost(shippingAddress, orderItems);
+
     // Update product stock and sold count
     for (const item of orderItems) {
       const product = await Product.findById(item.product);
@@ -51,8 +55,12 @@ const createOrder = async (req, res) => {
       shippingAddress,
       paymentMethod,
       taxPrice,
-      shippingPrice,
-      totalPrice,
+      shippingPrice: shippingCalculation.totalCost,
+      shippingZone: shippingCalculation.zone,
+      shippingZoneName: shippingCalculation.zoneName,
+      shippingBreakdown: shippingCalculation.breakdown,
+      estimatedDeliveryDays: shippingCalculation.estimatedDays,
+      totalPrice: totalPrice + shippingCalculation.totalCost, // Add shipping to total
     });
 
     // Perform fraud detection analysis
@@ -452,6 +460,43 @@ const getFraudStatsSafe = async (req, res) => {
   }
 };
 
+// @desc    Calculate shipping cost for an address
+// @route   POST /api/orders/calculate-shipping
+// @access  Private
+const calculateShipping = async (req, res) => {
+  try {
+    const { shippingAddress, orderItems = [], isExpress = false } = req.body;
+
+    if (!shippingAddress || !shippingAddress.city) {
+      return res.status(400).json({ message: 'Shipping address with city is required' });
+    }
+
+    const shippingCalculation = shippingService.calculateShippingCost(
+      shippingAddress,
+      orderItems,
+      { isExpress }
+    );
+
+    res.json(shippingCalculation);
+  } catch (error) {
+    console.error('Calculate shipping error:', error);
+    res.status(500).json({ message: 'Failed to calculate shipping cost' });
+  }
+};
+
+// @desc    Get all shipping zones
+// @route   GET /api/orders/shipping-zones
+// @access  Public
+const getShippingZones = async (req, res) => {
+  try {
+    const zones = shippingService.getAllZones();
+    res.json(zones);
+  } catch (error) {
+    console.error('Get shipping zones error:', error);
+    res.status(500).json({ message: 'Failed to get shipping zones' });
+  }
+};
+
 // @desc    Review and approve/reject order under fraud review
 // @route   PUT /api/orders/:id/fraud-review
 // @access  Private/Admin
@@ -503,4 +548,6 @@ module.exports = {
   getFraudStats,
   getFraudStatsSafe,
   reviewFraudOrder,
+  calculateShipping,
+  getShippingZones,
 };

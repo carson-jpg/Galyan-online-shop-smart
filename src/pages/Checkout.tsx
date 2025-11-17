@@ -39,6 +39,8 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState('M-Pesa');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [shippingCalculation, setShippingCalculation] = useState(null);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
@@ -63,9 +65,11 @@ const Checkout = () => {
 
   const initiatePaymentMutation = useMutation({
     mutationFn: async (orderId: string) => {
-      const amount = flashSaleData
+      const subtotal = flashSaleData
         ? flashSaleData.flashPrice * flashSaleData.quantity
-        : cart?.totalAmount;
+        : cart?.totalAmount || 0;
+      const shipping = shippingCalculation?.totalCost || 0;
+      const amount = subtotal + shipping;
 
       const response = await api.post('/mpesa/stkpush', {
         orderId,
@@ -154,13 +158,16 @@ const Checkout = () => {
       quantity: item.quantity,
     }));
 
+    const shippingPrice = shippingCalculation?.totalCost || 0;
+    const totalPrice = cart.totalAmount + shippingPrice;
+
     const orderData = {
       orderItems,
       shippingAddress,
       paymentMethod,
       taxPrice: 0,
-      shippingPrice: 0,
-      totalPrice: cart.totalAmount,
+      shippingPrice,
+      totalPrice,
     };
 
     createOrderMutation.mutate(orderData);
@@ -168,6 +175,25 @@ const Checkout = () => {
 
   const initiatePayment = (orderId: string) => {
     initiatePaymentMutation.mutate(orderId);
+  };
+
+  // Calculate shipping cost when address changes
+  const calculateShippingCost = async (address: any, items: any[] = []) => {
+    if (!address.city) return;
+
+    setIsCalculatingShipping(true);
+    try {
+      const response = await api.post('/orders/calculate-shipping', {
+        shippingAddress: address,
+        orderItems: items
+      });
+      setShippingCalculation(response.data);
+    } catch (error) {
+      console.error('Failed to calculate shipping:', error);
+      setShippingCalculation(null);
+    } finally {
+      setIsCalculatingShipping(false);
+    }
   };
 
   const getCurrentLocation = () => {
@@ -270,6 +296,21 @@ const Checkout = () => {
       }
     );
   };
+
+  // Calculate shipping when address changes
+  useEffect(() => {
+    if (cart?.items && shippingAddress.city) {
+      const orderItems = cart.items.map((item) => ({
+        product: item.product?._id,
+        name: item.product?.name || 'Unknown Product',
+        image: item.product?.images?.[0] || '/placeholder.svg',
+        price: item.price,
+        quantity: item.quantity,
+      }));
+
+      calculateShippingCost(shippingAddress, orderItems);
+    }
+  }, [shippingAddress.city, cart?.items]);
 
   useEffect(() => {
     // Initialize Google Places Autocomplete
@@ -394,15 +435,30 @@ const Checkout = () => {
                   ))
                 )}
                 <Separator />
+                {shippingCalculation && (
+                  <div className="flex justify-between text-sm">
+                    <span>Shipping ({shippingCalculation.zoneName}):</span>
+                    <span>KSh {shippingCalculation.totalCost.toLocaleString()}</span>
+                  </div>
+                )}
+                {isCalculatingShipping && (
+                  <div className="text-sm text-muted-foreground">Calculating shipping...</div>
+                )}
+                <Separator />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total:</span>
                   <span className={flashSaleData ? 'text-red-600' : ''}>
-                    KSh {(flashSaleData
+                    KSh {((flashSaleData
                       ? flashSaleData.flashPrice * flashSaleData.quantity
                       : cart.totalAmount
-                    ).toLocaleString()}
+                    ) + (shippingCalculation?.totalCost || 0)).toLocaleString()}
                   </span>
                 </div>
+                {shippingCalculation && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Estimated delivery: {shippingCalculation.estimatedDays} business days
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

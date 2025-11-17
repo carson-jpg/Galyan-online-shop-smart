@@ -10,6 +10,8 @@ const {
   getFraudStats,
   getFraudStatsSafe,
   reviewFraudOrder,
+  calculateShipping,
+  getShippingZones,
 } = require('../controllers/orderController');
 const { protect, admin, seller } = require('../middleware/auth');
 
@@ -21,6 +23,10 @@ router.route('/:id').get(protect, getOrderById);
 router.route('/:id/deliver').put(protect, admin, updateOrderToDelivered);
 router.route('/:id/status').put(protect, updateOrderStatus);
 router.route('/seller-stats').get(protect, seller, getSellerStats);
+
+// Shipping routes
+router.route('/calculate-shipping').post(protect, calculateShipping);
+router.route('/shipping-zones').get(getShippingZones);
 
 // Admin routes for order management
 router.get('/admin/orders', protect, admin, getOrders);

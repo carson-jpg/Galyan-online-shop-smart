@@ -76,6 +76,24 @@ const orderSchema = new mongoose.Schema({
     required: true,
     default: 0.0
   },
+  shippingZone: {
+    type: String,
+    enum: ['nairobi', 'major_cities', 'regional', 'remote'],
+    default: 'regional'
+  },
+  shippingZoneName: {
+    type: String,
+    default: 'Regional Areas'
+  },
+  shippingBreakdown: {
+    zoneCost: { type: Number, default: 0 },
+    weightCost: { type: Number, default: 0 },
+    expressCost: { type: Number, default: 0 }
+  },
+  estimatedDeliveryDays: {
+    type: Number,
+    default: 3
+  },
   totalPrice: {
     type: Number,
     required: true,
