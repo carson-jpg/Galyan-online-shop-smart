@@ -10,11 +10,8 @@ const generateAccessToken = async () => {
   ).toString('base64');
 
   try {
-    // Use production API only when NODE_ENV is production
-    const isProduction = process.env.NODE_ENV === 'production';
-    const baseUrl = isProduction
-      ? 'https://api.safaricom.co.ke'
-      : 'https://sandbox.safaricom.co.ke';
+    // Use production API since credentials are production
+    const baseUrl = 'https://api.safaricom.co.ke';
 
     console.log('Using M-Pesa API:', baseUrl);
     console.log('Consumer Key exists:', !!process.env.MPESA_CONSUMER_KEY);
@@ -44,6 +41,14 @@ const initiateSTKPush = async (req, res) => {
   try {
     const { orderId, phoneNumber, amount } = req.body;
 
+    // Format phone number for M-Pesa (Kenya format: 254XXXXXXXXX)
+    let formattedPhoneNumber = phoneNumber;
+    if (formattedPhoneNumber.startsWith('0')) {
+      formattedPhoneNumber = '254' + formattedPhoneNumber.substring(1);
+    } else if (formattedPhoneNumber.startsWith('7') && formattedPhoneNumber.length === 9) {
+      formattedPhoneNumber = '254' + formattedPhoneNumber;
+    }
+
     const order = await Order.findById(orderId);
 
     if (!order) {
@@ -56,11 +61,8 @@ const initiateSTKPush = async (req, res) => {
 
     const accessToken = await generateAccessToken();
 
-    // Determine base URL (same logic as in generateAccessToken)
-    const isProduction = process.env.NODE_ENV === 'production';
-    const baseUrl = isProduction
-      ? 'https://api.safaricom.co.ke'
-      : 'https://sandbox.safaricom.co.ke';
+    // Use production API since credentials are production
+    const baseUrl = 'https://api.safaricom.co.ke';
 
     const timestamp = new Date()
       .toISOString()
@@ -77,9 +79,9 @@ const initiateSTKPush = async (req, res) => {
       Timestamp: timestamp,
       TransactionType: 'CustomerPayBillOnline',
       Amount: amount,
-      PartyA: phoneNumber,
+      PartyA: formattedPhoneNumber,
       PartyB: process.env.MPESA_SHORTCODE,
-      PhoneNumber: phoneNumber,
+      PhoneNumber: formattedPhoneNumber,
       CallBackURL: process.env.MPESA_CALLBACK_URL,
       AccountReference: `Order-${orderId}`,
       TransactionDesc: 'Payment for order',
@@ -179,11 +181,8 @@ const checkPaymentStatus = async (req, res) => {
 
     const accessToken = await generateAccessToken();
 
-    // Determine base URL (same logic as in generateAccessToken)
-    const isProduction = process.env.NODE_ENV === 'production';
-    const baseUrl = isProduction
-      ? 'https://api.safaricom.co.ke'
-      : 'https://sandbox.safaricom.co.ke';
+    // Use production API since credentials are production
+    const baseUrl = 'https://api.safaricom.co.ke';
 
     const timestamp = new Date()
       .toISOString()
